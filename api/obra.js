@@ -39,11 +39,11 @@ export default async function handler(req, res) {
 
     const COL = {
       nombre: colId(colMap, 'nombre de la tarea','tarea','nombre','task name','actividad','name'),
-      inicio: colId(colMap, 'fecha inicio','inicio','start','fecha de inicio'),
-      fin: colId(colMap, 'fecha final','fin','finish','end','fecha de fin'),
-      pct: colId(colMap, '% completo','% completado','% complete','porcentaje','avance','percent complete'),
-      baseStart: colId(colMap, 'comienzo de línea de base','baseline start','inicio base'),
-      baseFinish: colId(colMap, 'fin de línea de base','baseline finish','fin base'),
+      inicio: colId(colMap, 'inicio','fecha inicio','start','fecha de inicio','comienzo'),
+      fin: colId(colMap, 'fin','fecha final','finish','end','fecha de fin','finalización'),
+      pct: colId(colMap, '% completado','% completo','% complete','porcentaje','avance','percent complete'),
+      baseStart: colId(colMap, 'comienzo de línea de base','baseline start','inicio base','inicio línea base'),
+      baseFinish: colId(colMap, 'fin de línea de base','baseline finish','fin base','fin línea base'),
     };
 
     /* Parsear filas */
