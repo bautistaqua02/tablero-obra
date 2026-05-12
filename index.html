@@ -32,7 +32,7 @@ body{background:#f0f4f8}
 </style>
 </head>
 <body class="min-h-screen">
-
+ 
 <!-- HEADER -->
 <header class="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
   <div class="max-w-5xl mx-auto px-6 py-3 flex flex-wrap items-center gap-3 justify-between">
@@ -44,7 +44,7 @@ body{background:#f0f4f8}
       </div>
       <div>
         <h1 class="text-base font-extrabold text-gray-900">Tablero Ejecutivo de Obra</h1>
-        <p class="text-xs text-gray-400">Smartsheet + Google Sheets · <span id="hdrFecha"></span></p>
+        <p class="text-xs text-gray-400">Smartsheet · <span id="hdrFecha"></span></p>
       </div>
     </div>
     <div class="flex items-center gap-3 flex-wrap">
@@ -58,18 +58,18 @@ body{background:#f0f4f8}
     </div>
   </div>
 </header>
-
+ 
 <div id="loadingBar" class="h-1 bg-indigo-500 hidden"></div>
-
+ 
 <div id="errorBox" class="hidden max-w-5xl mx-auto mt-6 px-6">
   <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5">
     <p class="font-bold text-sm text-rose-700 mb-1">⚠️ Error de conexión</p>
     <p id="errorMsg" class="text-xs text-rose-500"></p>
   </div>
 </div>
-
+ 
 <main id="mainContent" class="max-w-5xl mx-auto px-6 py-8 space-y-8 opacity-0 transition-opacity duration-500">
-
+ 
   <!-- ══ PANEL ECONÓMICO ══ -->
   <section>
     <div class="flex items-center gap-3 mb-5">
@@ -77,7 +77,7 @@ body{background:#f0f4f8}
       <div>
         <h2 class="text-base font-bold text-gray-800">Panel Económico</h2>
         <div class="flex items-center gap-2 mt-1 flex-wrap">
-          <p class="text-xs text-gray-400">Presupuesto vs Gasto Real · Google Sheets</p>
+          <p class="text-xs text-gray-400">Presupuesto vs Gasto Real</p>
           <span id="ultimaActHoja" class="hidden"></span>
         </div>
       </div>
@@ -110,7 +110,7 @@ body{background:#f0f4f8}
       </div>
     </div>
   </section>
-
+ 
   <!-- ══ PANEL DE TIEMPOS / GANTT ══ -->
   <section>
     <div class="flex items-center gap-3 mb-5">
@@ -120,10 +120,10 @@ body{background:#f0f4f8}
         <p class="text-xs text-gray-400">Gantt en tiempo real · datos desde Smartsheet</p>
       </div>
     </div>
-
+ 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
       <div class="card p-6 lg:col-span-2 space-y-5">
-
+ 
         <!-- Avance físico -->
         <div>
           <div class="flex justify-between items-center mb-2">
@@ -132,7 +132,7 @@ body{background:#f0f4f8}
           </div>
           <div class="prog-track"><div id="progFill" class="prog-fill">0%</div></div>
         </div>
-
+ 
         <!-- Toggle vista -->
         <div class="flex items-center gap-2 flex-wrap">
           <span class="text-xs font-semibold text-gray-400 uppercase mr-1">Vista:</span>
@@ -140,14 +140,14 @@ body{background:#f0f4f8}
           <button class="gantt-toggle-btn"        onclick="setVista('trimestre')" id="btn-trimestre">Trimestre</button>
           <button class="gantt-toggle-btn"        onclick="setVista('mes')"       id="btn-mes">Mes</button>
         </div>
-
+ 
         <!-- SVG Gantt -->
         <div id="ganttWrap">
           <svg id="ganttSvg" height="200" role="img" aria-label="Gantt de avance de obra">
             <title>Gantt de avance de obra</title>
           </svg>
         </div>
-
+ 
         <!-- Leyenda -->
         <div class="flex flex-wrap gap-5 pt-1 border-t border-gray-100">
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:28px;height:12px;background:#f97316;border-radius:3px"></span>Avance real</span>
@@ -158,7 +158,7 @@ body{background:#f0f4f8}
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:50%"></span>Atrasada</span>
         </div>
       </div>
-
+ 
       <!-- Sidebar -->
       <div class="card p-6 flex flex-col gap-3">
         <p class="text-xs font-semibold text-gray-400 uppercase">Proyección de Cierre</p>
@@ -178,7 +178,7 @@ body{background:#f0f4f8}
           <p id="desvDiasVal" class="text-2xl font-extrabold text-gray-500">—</p>
           <p id="desvDiasLbl" class="text-xs font-semibold mt-1 text-gray-400">días de desvío</p>
         </div>
-
+ 
         <!-- Tareas próximas -->
         <div class="border-t border-gray-100 pt-3">
           <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Próximas tareas</p>
@@ -187,39 +187,40 @@ body{background:#f0f4f8}
       </div>
     </div>
   </section>
-
+ 
   <p id="ultimaAct" class="text-center text-xs text-gray-300 pb-4"></p>
 </main>
 <div id="toast"></div>
 <div id="ganttTooltip" style="position:fixed;display:none;background:#1e293b;color:#fff;padding:7px 13px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3)"></div>
-
+ 
 <script>
 /* ═══════════════════════════════════════════════════════
    CONFIGURACIÓN
    ─────────────────────────────────────────────────────
-   BASE_SHEET_ID   → ID del Google Sheets con el INDICE
-   INDICE_GID      → gid del tab INDICE en Google Sheets
-   API_BASE        → URL base de tu deploy en Vercel
-                     Ej: 'https://mi-tablero.vercel.app'
-                     En desarrollo: '' (vacío, usa rutas relativas)
+   API_BASE → URL base de tu deploy en Vercel
+              Ej: 'https://mi-tablero.vercel.app'
+              En desarrollo: '' (vacío, usa rutas relativas)
    ═══════════════════════════════════════════════════════ */
 const BASE_SHEET_ID = '';
 const INDICE_GID    = '0';
 const API_BASE      = ''; /* En Vercel va vacío; en local: 'http://localhost:3000' */
-
+ 
+/* ID de tu hoja de Smartsheet */
+const SMARTSHEET_ID = '5815789760237444';
+ 
 const PROXIES = [
   u => u,
   u => 'https://corsproxy.io/?' + encodeURIComponent(u),
   u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)
 ];
-
+ 
 let indiceObras = [];
 let obraActual  = null;
 let smData      = null;
 let chart       = null;
 let vistaGantt  = 'total';
 const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString('es-AR');
-
+ 
 /* ─── Helpers ─── */
 function cleanNum(s) {
   if (!s && s !== 0) return 0;
@@ -247,8 +248,8 @@ function parseDate(s) {
   const d = new Date(s + 'T12:00:00');
   return isNaN(d) ? null : d;
 }
-
-/* ─── Google Sheets INDICE ─── */
+ 
+/* ─── Google Sheets (no usado en modo directo, se mantiene por compatibilidad) ─── */
 async function fetchCSV(url) {
   let lastErr;
   for (const proxy of PROXIES) {
@@ -265,7 +266,7 @@ async function fetchCSV(url) {
   }
   throw new Error('Sin conexión: ' + (lastErr?.message || ''));
 }
-
+ 
 function parseIndice(text) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   const hdrs  = parseCSVLine(lines[0]).map(h => h.replace(/"/g,'').trim().toLowerCase());
@@ -276,7 +277,7 @@ function parseIndice(text) {
     return obj;
   }).filter(r => r.nombre || r.obra);
 }
-
+ 
 function parseObraKV(text) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   const kv = {};
@@ -295,7 +296,7 @@ function parseObraKV(text) {
     smartsheetId: kv['smartsheet_id'] || ''
   };
 }
-
+ 
 /* ─── Smartsheet via API propia ─── */
 async function fetchSmartsheet(sheetId) {
   const url = `${API_BASE}/api/obra?id=${sheetId}`;
@@ -306,7 +307,98 @@ async function fetchSmartsheet(sheetId) {
   }
   return res.json();
 }
-
+ 
+/* ═══════════════════════════════════════════════════════
+   CARGA DIRECTA DESDE SMARTSHEET (sin Google Sheets)
+   ═══════════════════════════════════════════════════════ */
+async function cargarObraDirecta(smId) {
+  smData = await fetchSmartsheet(smId);
+ 
+  /* Rellenar el selector con el nombre que devuelve Smartsheet */
+  const sel = document.getElementById('selectorObra');
+  sel.innerHTML = '<option>' + (smData.resumen?.nombre || 'Mi Obra') + '</option>';
+ 
+  /* Panel económico: si Smartsheet trae presupuesto/gasto lo mostramos,
+     si no, mostramos ceros (se puede completar después con Google Sheets) */
+  obraActual = {
+    nombre:      smData.resumen?.nombre   || 'Mi Obra',
+    presupuesto: smData.resumen?.presupuesto || 0,
+    gastoReal:   smData.resumen?.gastoReal   || 0,
+    ultAct:      smData.resumen?.ultAct      || ''
+  };
+  renderEco(obraActual);
+  renderTiempos(smData);
+}
+ 
+/* ═══════════════════════════════════════════════════════
+   CARGA DE ÍNDICE (modo multi-obra con Google Sheets)
+   ═══════════════════════════════════════════════════════ */
+async function cargarIndice() {
+  /* ── MODO DIRECTO: arranca siempre con la hoja de Smartsheet ── */
+  if (!BASE_SHEET_ID) {
+    await cargarObraDirecta(SMARTSHEET_ID);
+    return;
+  }
+ 
+  /* ── MODO ÍNDICE: Google Sheets como índice de obras ── */
+  const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${INDICE_GID}`;
+  const text = await fetchCSV(url);
+  indiceObras = parseIndice(text);
+  if (!indiceObras.length) throw new Error('El INDICE está vacío.');
+ 
+  const sel = document.getElementById('selectorObra');
+  sel.innerHTML = '';
+  indiceObras.forEach((r, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = (r.nombre||r.obra) + (r.estado ? ' · '+r.estado : '');
+    sel.appendChild(opt);
+  });
+  await cargarObra(0);
+}
+ 
+async function cargarObra(idx) {
+  const meta = indiceObras[idx];
+  if (!meta) return;
+ 
+  /* Si es demo */
+  if (meta._demo) {
+    obraActual = meta._demo.eco;
+    smData     = meta._demo.sm;
+    renderEco(obraActual);
+    renderTiempos(smData);
+    return;
+  }
+ 
+  /* Cargar datos económicos desde Google Sheets */
+  const gid  = meta.gid || '';
+  if (gid) {
+    const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${gid}`;
+    const text = await fetchCSV(url);
+    obraActual = parseObraKV(text);
+  } else {
+    obraActual = { nombre: meta.nombre||meta.obra, presupuesto:0, gastoReal:0, ultAct:'', smartsheetId: meta.smartsheet_id||'' };
+  }
+  renderEco(obraActual);
+ 
+  /* Cargar tiempos desde Smartsheet */
+  const smId = meta.smartsheet_id || obraActual.smartsheetId || '';
+  if (!smId) {
+    toast('⚠️ Esta obra no tiene smartsheet_id en el INDICE', 5000);
+    return;
+  }
+  smData = await fetchSmartsheet(smId);
+  renderTiempos(smData);
+}
+ 
+function cambiarObra() {
+  const idx = document.getElementById('selectorObra').selectedIndex;
+  setLoading(true);
+  cargarObra(idx)
+    .catch(e => toast('❌ ' + e.message, 6000))
+    .finally(() => setLoading(false));
+}
+ 
 /* ═══════════════════════════════════════════════════════
    RENDER ECONÓMICO
    ═══════════════════════════════════════════════════════ */
@@ -316,7 +408,7 @@ function renderEco(obra) {
   const desv    = real - proy;
   const desvPct = proy ? ((desv/proy)*100).toFixed(1) : '0.0';
   const neg     = desv > 0;
-
+ 
   document.getElementById('kpiProy').textContent      = fmt(proy);
   document.getElementById('kpiReal').textContent      = fmt(real);
   document.getElementById('kpiDesvPct').textContent   = (neg?'+':'') + desvPct + '%';
@@ -324,13 +416,13 @@ function renderEco(obra) {
   ['chipPct','chipMonto'].forEach(id => {
     document.getElementById(id).className = (neg?'chip-neg':'chip-pos') + ' rounded-xl px-4 py-3 text-center';
   });
-
+ 
   const ultEl = document.getElementById('ultimaActHoja');
   if (obra.ultAct) {
     ultEl.textContent = '📅 Datos al: ' + obra.ultAct;
     ultEl.className   = 'text-xs font-semibold text-indigo-500 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full';
   } else { ultEl.className = 'hidden'; }
-
+ 
   if (chart) chart.destroy();
   chart = new Chart(document.getElementById('gastoChart').getContext('2d'), {
     type: 'bar',
@@ -352,34 +444,34 @@ function renderEco(obra) {
     }
   });
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    RENDER TIEMPOS desde Smartsheet
    ═══════════════════════════════════════════════════════ */
 function renderTiempos(sm) {
   const { resumen, tareas } = sm;
   const today = new Date(); today.setHours(0,0,0,0);
-
+ 
   const t0   = parseDate(resumen.fechaInicio);
   const t1   = parseDate(resumen.fechaFin);
   const b0   = parseDate(resumen.baseStart)  || t0;
   const b1   = parseDate(resumen.baseFinish) || t1;
   const av   = resumen.avance;
-
+ 
   if (!t0 || !t1) return;
-
+ 
   /* Avance físico */
   document.getElementById('avLbl').textContent = av + '%';
   setTimeout(() => {
     document.getElementById('progFill').style.width = av + '%';
     document.getElementById('progFill').textContent = av + '%';
   }, 120);
-
+ 
   /* Sidebar fechas */
   document.getElementById('fInicio').textContent  = fmtFecha(b0);
   document.getElementById('fFinPlan').textContent = fmtFecha(b1);
   document.getElementById('fFinEst').textContent  = fmtFecha(t1);
-
+ 
   const diffD = b1 ? Math.round((t1 - b1) / 86400000) : 0;
   const estBox = document.getElementById('fFinEstBox');
   const dBox   = document.getElementById('desvDiasBox');
@@ -398,7 +490,7 @@ function renderTiempos(sm) {
     document.getElementById('desvDiasVal').className   = 'text-2xl font-extrabold text-rose-600';
     document.getElementById('desvDiasLbl').textContent = 'de retraso ⚠️';
   }
-
+ 
   /* Próximas tareas (no completadas, ordenadas por fecha de inicio) */
   const proxEl = document.getElementById('tareasProximas');
   proxEl.innerHTML = '';
@@ -409,7 +501,7 @@ function renderTiempos(sm) {
   const atrasadas = tareas
     .filter(t => !t.completada && parseDate(t.fin) < today)
     .slice(0, 3);
-
+ 
   [...atrasadas, ...proximas].slice(0, 6).forEach(t => {
     const atrasada = !t.completada && parseDate(t.fin) < today;
     const d = document.createElement('div');
@@ -422,15 +514,15 @@ function renderTiempos(sm) {
       </div>`;
     proxEl.appendChild(d);
   });
-
+ 
   if (!proximas.length && !atrasadas.length) {
     proxEl.innerHTML = '<p style="font-size:11px;color:#94a3b8">Sin tareas próximas</p>';
   }
-
+ 
   /* Dibujar Gantt */
   drawGantt(tareas, t0, t1, b0, b1, today, av);
 }
-
+ 
 /* ═══════════════════════════════════════════════════════
    GANTT SVG
    ═══════════════════════════════════════════════════════ */
@@ -449,12 +541,12 @@ function setVista(v) {
     drawGantt(tareas, t0, t1, b0, b1, today, resumen.avance);
   }
 }
-
+ 
 function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   const svg  = document.getElementById('ganttSvg');
   const W    = svg.parentElement.clientWidth || 600;
   svg.setAttribute('width', W);
-
+ 
   /* Rango visible */
   let vStart, vEnd;
   const tMax = t1 > b1 ? t1 : b1;
@@ -469,7 +561,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     vStart = new Date(today.getTime() - 86400000*7);
     vEnd   = new Date(today.getTime() + 86400000*23);
   }
-
+ 
   const PAD_L = 10, PAD_R = 10;
   const chartW = W - PAD_L - PAD_R;
   function px(date) {
@@ -477,7 +569,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     const ratio = (date - vStart) / (vEnd - vStart);
     return PAD_L + Math.round(ratio * chartW);
   }
-
+ 
   /* Dimensiones filas */
   const Y_AXIS  = 28;
   const Y_REAL  = 72;
@@ -485,9 +577,9 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   const Y_TASKS = 155;
   const H_SVG   = 185;
   svg.setAttribute('height', H_SVG);
-
+ 
   let html = '';
-
+ 
   /* Fondo zebra por meses */
   const cur = new Date(vStart.getFullYear(), vStart.getMonth(), 1);
   let toggle = false;
@@ -499,7 +591,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     toggle = !toggle;
     cur.setMonth(cur.getMonth()+1);
   }
-
+ 
   /* Eje temporal */
   getTimeLabels(vStart, vEnd).forEach(({date, label}) => {
     const x = px(date);
@@ -507,12 +599,12 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     html += `<line x1="${x}" y1="38" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
     html += `<text x="${x}" y="${Y_AXIS}" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Inter,sans-serif" font-weight="600">${label}</text>`;
   });
-
+ 
   /* Rótulos de filas */
   html += `<text x="${PAD_L}" y="${Y_REAL-12}" font-size="9" fill="#f97316" font-family="Inter,sans-serif" font-weight="700">AVANCE REAL</text>`;
   html += `<text x="${PAD_L}" y="${Y_BASE-8}" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">LÍNEA BASE</text>`;
   html += `<text x="${PAD_L}" y="${Y_TASKS-4}" font-size="9" fill="#64748b" font-family="Inter,sans-serif" font-weight="700">TAREAS</text>`;
-
+ 
   /* ── BARRA AVANCE REAL ── */
   const barH  = 22;
   const xT0   = px(t0);
@@ -520,12 +612,12 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   const avFrac = avance / 100;
   const durReal = t1 - t0;
   const xAvEnd  = px(new Date(t0.getTime() + durReal * avFrac));
-
+ 
   /* Fondo total real */
   const rBgX1 = Math.max(xT0, PAD_L);
   const rBgX2 = Math.min(xT1, PAD_L+chartW);
   if (rBgX2 > rBgX1) html += `<rect x="${rBgX1}" y="${Y_REAL-barH/2}" width="${rBgX2-rBgX1}" height="${barH}" rx="5" fill="#fed7aa" opacity="0.5"/>`;
-
+ 
   /* Porción ejecutada */
   const avX1 = Math.max(xT0, PAD_L);
   const avX2 = Math.min(xAvEnd, PAD_L+chartW);
@@ -535,7 +627,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
       html += `<text x="${(avX1+avX2)/2}" y="${Y_REAL+4}" text-anchor="middle" font-size="11" fill="#fff" font-family="Inter,sans-serif" font-weight="800">${avance}%</text>`;
     }
   }
-
+ 
   /* Extensión si hay retraso */
   if (t1 > b1) {
     const extX1 = Math.max(px(b1), PAD_L);
@@ -548,7 +640,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
       }
     }
   }
-
+ 
   /* ── LÍNEA BASE ── */
   const lbX1 = Math.max(px(b0), PAD_L);
   const lbX2 = Math.min(px(b1), PAD_L+chartW);
@@ -559,7 +651,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     if (px(b0) >= PAD_L) html += `<text x="${lbX1}" y="${Y_BASE+16}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">${fmtCorta(b0)}</text>`;
     if (px(b1) <= PAD_L+chartW) html += `<text x="${lbX2}" y="${Y_BASE+16}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">${fmtCorta(b1)}</text>`;
   }
-
+ 
   /* ── PUNTOS DE TAREAS en eje inferior ── */
   const tareasFiltradas = tareas.filter(t => !t.esPadre).slice(0, 30);
   tareasFiltradas.forEach((t, i) => {
@@ -576,7 +668,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
       onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"/>`;
     html += `<line x1="${xm}" y1="${Y_TASKS-5}" x2="${xm}" y2="${Y_BASE+14}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>`;
   });
-
+ 
   /* ── LÍNEA HOY ── */
   const xH = px(today);
   if (xH >= PAD_L && xH <= PAD_L+chartW) {
@@ -584,10 +676,10 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     html += `<rect x="${xH-18}" y="38" width="36" height="14" rx="4" fill="#ef4444"/>`;
     html += `<text x="${xH}" y="48" text-anchor="middle" font-size="9" fill="#fff" font-family="Inter,sans-serif" font-weight="800">HOY</text>`;
   }
-
+ 
   svg.innerHTML = html;
 }
-
+ 
 function getTimeLabels(start, end) {
   const days = (end - start) / 86400000;
   const labels = [];
@@ -613,82 +705,19 @@ function getTimeLabels(start, end) {
   }
   return labels;
 }
-
+ 
 function showTip(e, text) {
   const t = document.getElementById('ganttTooltip');
   t.textContent = text; t.style.display = 'block';
   t.style.left = (e.clientX+12)+'px'; t.style.top = (e.clientY-30)+'px';
 }
 function hideTip() { document.getElementById('ganttTooltip').style.display='none'; }
-
-/* ═══════════════════════════════════════════════════════
-   CARGA DE DATOS
-   ═══════════════════════════════════════════════════════ */
-async function cargarIndice() {
-  if (BASE_SHEET_ID === 'TU_GOOGLE_SHEET_ID') return cargarDemo();
-  const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${INDICE_GID}`;
-  const text = await fetchCSV(url);
-  indiceObras = parseIndice(text);
-  if (!indiceObras.length) throw new Error('El INDICE está vacío.');
-
-  const sel = document.getElementById('selectorObra');
-  sel.innerHTML = '';
-  indiceObras.forEach((r, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = (r.nombre||r.obra) + (r.estado ? ' · '+r.estado : '');
-    sel.appendChild(opt);
-  });
-  await cargarObra(0);
-}
-
-async function cargarObra(idx) {
-  const meta = indiceObras[idx];
-  if (!meta) return;
-
-  /* Si es demo */
-  if (meta._demo) {
-    obraActual = meta._demo.eco;
-    smData     = meta._demo.sm;
-    renderEco(obraActual);
-    renderTiempos(smData);
-    return;
-  }
-
-  /* Cargar datos económicos desde Google Sheets */
-  const gid  = meta.gid || '';
-  if (gid) {
-    const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${gid}`;
-    const text = await fetchCSV(url);
-    obraActual = parseObraKV(text);
-  } else {
-    obraActual = { nombre: meta.nombre||meta.obra, presupuesto:0, gastoReal:0, ultAct:'', smartsheetId: meta.smartsheet_id||'' };
-  }
-  renderEco(obraActual);
-
-  /* Cargar tiempos desde Smartsheet */
-  const smId = meta.smartsheet_id || obraActual.smartsheetId || '';
-  if (!smId) {
-    toast('⚠️ Esta obra no tiene smartsheet_id en el INDICE', 5000);
-    return;
-  }
-  smData = await fetchSmartsheet(smId);
-  renderTiempos(smData);
-}
-
-function cambiarObra() {
-  const idx = document.getElementById('selectorObra').selectedIndex;
-  setLoading(true);
-  cargarObra(idx)
-    .catch(e => toast('❌ ' + e.message, 6000))
-    .finally(() => setLoading(false));
-}
-
+ 
 /* ─── Demo sin credenciales ─── */
 function cargarDemo() {
   const today = new Date(); today.setHours(0,0,0,0);
   const ds = d => { const x = new Date(today); x.setDate(x.getDate()+d); return x.toISOString().slice(0,10); };
-
+ 
   const demos = [
     {
       nombre: 'Edificio Residencial Norte', estado: 'En curso',
@@ -704,39 +733,9 @@ function cargarDemo() {
           { id:6, nivel:2, nombre:'Terminaciones', inicio:ds(71),   fin:ds(110),  pct:0,   baseStart:ds(61),   baseFinish:ds(90),   completada:false, esPadre:false },
         ]
       }
-    },
-    {
-      nombre: 'Local Comercial Centro', estado: 'En curso',
-      eco: { nombre:'Local Comercial Centro', presupuesto:6800000, gastoReal:7100000, ultAct:'10/05/2025' },
-      sm: {
-        resumen: { nombre:'Local Comercial Centro', avance:91, fechaInicio:ds(-200), fechaFin:ds(15), baseStart:ds(-200), baseFinish:ds(-5) },
-        tareas: [
-          { id:1, nivel:2, nombre:'Demolición',   inicio:ds(-200), fin:ds(-170), pct:100, baseStart:ds(-200), baseFinish:ds(-170), completada:true,  esPadre:false },
-          { id:2, nivel:2, nombre:'Tabiques',     inicio:ds(-169), fin:ds(-100), pct:100, baseStart:ds(-169), baseFinish:ds(-100), completada:true,  esPadre:false },
-          { id:3, nivel:2, nombre:'Electricidad', inicio:ds(-99),  fin:ds(-50),  pct:100, baseStart:ds(-99),  baseFinish:ds(-50),  completada:true,  esPadre:false },
-          { id:4, nivel:2, nombre:'Pisos',        inicio:ds(-49),  fin:ds(-10),  pct:100, baseStart:ds(-49),  baseFinish:ds(-10),  completada:true,  esPadre:false },
-          { id:5, nivel:2, nombre:'Frente',       inicio:ds(-9),   fin:ds(15),   pct:40,  baseStart:ds(-9),   baseFinish:ds(-5),   completada:false, esPadre:false },
-        ]
-      }
-    },
-    {
-      nombre: 'Planta Industrial Sur', estado: 'Pausada',
-      eco: { nombre:'Planta Industrial Sur', presupuesto:42000000, gastoReal:18500000, ultAct:'10/05/2025' },
-      sm: {
-        resumen: { nombre:'Planta Industrial Sur', avance:38, fechaInicio:ds(-400), fechaFin:ds(320), baseStart:ds(-400), baseFinish:ds(250) },
-        tareas: [
-          { id:1, nivel:2, nombre:'Movimiento de suelos', inicio:ds(-400), fin:ds(-340), pct:100, baseStart:ds(-400), baseFinish:ds(-340), completada:true,  esPadre:false },
-          { id:2, nivel:2, nombre:'Fundaciones',          inicio:ds(-339), fin:ds(-250), pct:100, baseStart:ds(-339), baseFinish:ds(-250), completada:true,  esPadre:false },
-          { id:3, nivel:2, nombre:'Estructura nave 1',    inicio:ds(-249), fin:ds(-150), pct:100, baseStart:ds(-249), baseFinish:ds(-150), completada:true,  esPadre:false },
-          { id:4, nivel:2, nombre:'Cerramiento nave 1',   inicio:ds(-149), fin:ds(-30),  pct:20,  baseStart:ds(-149), baseFinish:ds(-60),  completada:false, esPadre:false },
-          { id:5, nivel:2, nombre:'Estructura nave 2',    inicio:ds(-29),  fin:ds(100),  pct:0,   baseStart:ds(-29),  baseFinish:ds(80),   completada:false, esPadre:false },
-          { id:6, nivel:2, nombre:'Instalaciones',        inicio:ds(101),  fin:ds(220),  pct:0,   baseStart:ds(81),   baseFinish:ds(180),  completada:false, esPadre:false },
-          { id:7, nivel:2, nombre:'Entrega',              inicio:ds(221),  fin:ds(320),  pct:0,   baseStart:ds(181),  baseFinish:ds(250),  completada:false, esPadre:false },
-        ]
-      }
     }
   ];
-
+ 
   indiceObras = demos.map(d => ({ nombre:d.nombre, estado:d.estado, _demo:d }));
   const sel = document.getElementById('selectorObra');
   sel.innerHTML = '';
@@ -745,28 +744,28 @@ function cargarDemo() {
     opt.value = i; opt.textContent = r.nombre + ' · ' + r.estado;
     sel.appendChild(opt);
   });
-
+ 
   obraActual = demos[0].eco;
   smData     = demos[0].sm;
   renderEco(obraActual);
   renderTiempos(smData);
-  toast('🛠️ Modo demo — configurá las credenciales para conectar tu hoja', 6000);
+  toast('🛠️ No se pudo conectar con Smartsheet — mostrando datos de demo', 6000);
 }
-
+ 
 /* ─── Loading state ─── */
 function setLoading(on) {
   document.getElementById('loadingBar').classList.toggle('hidden', !on);
   document.getElementById('btnRefresh').disabled = on;
   document.getElementById('refreshIcon').innerHTML = on ? '<span class="spin"></span>' : '🔄';
 }
-
+ 
 /* ─── Toast ─── */
 function toast(msg, dur=3000) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), dur);
 }
-
+ 
 /* ─── Refrescar ─── */
 async function refrescar() {
   setLoading(true);
@@ -775,7 +774,7 @@ async function refrescar() {
     await cargarIndice();
     document.getElementById('mainContent').classList.replace('opacity-0','opacity-100');
     document.getElementById('ultimaAct').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-AR');
-    if (BASE_SHEET_ID !== 'TU_GOOGLE_SHEET_ID') toast('✅ ' + indiceObras.length + ' obra(s) cargadas');
+    toast('✅ Datos cargados correctamente');
   } catch(e) {
     document.getElementById('errorBox').classList.remove('hidden');
     document.getElementById('errorMsg').textContent = e.message;
@@ -784,13 +783,13 @@ async function refrescar() {
     document.getElementById('mainContent').classList.replace('opacity-0','opacity-100');
   } finally { setLoading(false); }
 }
-
+ 
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hdrFecha').textContent =
     new Date().toLocaleDateString('es-AR', {day:'2-digit',month:'long',year:'numeric'});
   refrescar();
 });
-
+ 
 window.addEventListener('resize', () => {
   if (smData) {
     const { resumen, tareas } = smData;
