@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Tablero Ejecutivo de Obra</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#f0f4f8}
+.card{background:#fff;border-radius:18px;box-shadow:0 2px 4px rgba(0,0,0,.05),0 6px 20px rgba(0,0,0,.07)}
+.chip-pos{background:#ecfdf5;border:1.5px solid #6ee7b7;color:#065f46}
+.chip-neg{background:#fff1f2;border:1.5px solid #fda4af;color:#9f1239}
+.sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.25rem}
+#toast{position:fixed;bottom:24px;right:24px;z-index:100;background:#1e293b;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#toast.show{transform:translateY(0);opacity:1}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.comp-box{border-radius:10px;padding:12px 14px;border-left:4px solid}
+.comp-plan{border-color:#6366f1;background:#f5f3ff}
+.comp-est-ok{border-color:#10b981;background:#ecfdf5}
+.comp-est-bad{border-color:#ef4444;background:#fff1f2}
+.prog-track{background:#e2e8f0;border-radius:99px;height:28px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#f97316,#fb923c);width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:14px;font-size:12px;font-weight:800;color:#fff;white-space:nowrap}
+.gantt-toggle-btn{padding:5px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .2s}
+.gantt-toggle-btn.active{background:#6366f1;border-color:#6366f1;color:#fff}
+#ganttWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#ganttSvg{display:block;min-width:600px}
+.hito-dot{cursor:pointer}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- HEADER -->
+<header class="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
+  <div class="max-w-5xl mx-auto px-6 py-3 flex flex-wrap items-center gap-3 justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-base font-extrabold text-gray-900">Tablero Ejecutivo de Obra</h1>
+        <p class="text-xs text-gray-400">Smartsheet + Google Sheets · <span id="hdrFecha"></span></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 flex-wrap">
+      <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Obra:</label>
+      <select id="selectorObra" onchange="cambiarObra()" class="sel bg-indigo-50 border border-indigo-200 text-indigo-800 font-semibold rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        <option>Cargando...</option>
+      </select>
+      <button onclick="refrescar()" id="btnRefresh" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-all">
+        <span id="refreshIcon">🔄</span> Refrescar
+      </button>
+    </div>
+  </div>
+</header>
+
+<div id="loadingBar" class="h-1 bg-indigo-500 hidden"></div>
+
+<div id="errorBox" class="hidden max-w-5xl mx-auto mt-6 px-6">
+  <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5">
+    <p class="font-bold text-sm text-rose-700 mb-1">⚠️ Error de conexión</p>
+    <p id="errorMsg" class="text-xs text-rose-500"></p>
+  </div>
+</div>
+
+<main id="mainContent" class="max-w-5xl mx-auto px-6 py-8 space-y-8 opacity-0 transition-opacity duration-500">
+
+  <!-- ══ PANEL ECONÓMICO ══ -->
+  <section>
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-lg">💰</div>
+      <div>
+        <h2 class="text-base font-bold text-gray-800">Panel Económico</h2>
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <p class="text-xs text-gray-400">Presupuesto vs Gasto Real · Google Sheets</p>
+          <span id="ultimaActHoja" class="hidden"></span>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div class="card p-6 lg:col-span-2">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Comparativo</p>
+        <div style="position:relative;height:260px"><canvas id="gastoChart" role="img" aria-label="Comparativo presupuesto vs gasto real"></canvas></div>
+      </div>
+      <div class="flex flex-col gap-4">
+        <div class="card p-5">
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-1">Presupuesto</p>
+          <p id="kpiProy" class="text-3xl font-extrabold text-indigo-600">—</p>
+        </div>
+        <div class="card p-5">
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-1">Gasto Real</p>
+          <p id="kpiReal" class="text-3xl font-extrabold text-gray-800">—</p>
+        </div>
+        <div class="card p-5 flex flex-col gap-3">
+          <p class="text-xs font-semibold text-gray-400 uppercase">Desvío</p>
+          <div id="chipPct" class="chip-neg rounded-xl px-4 py-3 text-center">
+            <p id="kpiDesvPct" class="text-2xl font-extrabold">—</p>
+            <p class="text-xs font-semibold mt-0.5">% desvío</p>
+          </div>
+          <div id="chipMonto" class="chip-neg rounded-xl px-4 py-3 text-center">
+            <p id="kpiDesvMonto" class="text-xl font-bold">—</p>
+            <p class="text-xs font-semibold mt-0.5">Δ en pesos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PANEL DE TIEMPOS / GANTT ══ -->
+  <section>
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center text-lg">⏱️</div>
+      <div>
+        <h2 class="text-base font-bold text-gray-800">Panel de Tiempos</h2>
+        <p class="text-xs text-gray-400">Gantt en tiempo real · datos desde Smartsheet</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div class="card p-6 lg:col-span-2 space-y-5">
+
+        <!-- Avance físico -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-xs font-semibold text-gray-400 uppercase">Avance Físico General</p>
+            <span id="avLbl" class="text-sm font-extrabold text-orange-500">0%</span>
+          </div>
+          <div class="prog-track"><div id="progFill" class="prog-fill">0%</div></div>
+        </div>
+
+        <!-- Toggle vista -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-semibold text-gray-400 uppercase mr-1">Vista:</span>
+          <button class="gantt-toggle-btn active" onclick="setVista('total')"     id="btn-total">Obra completa</button>
+          <button class="gantt-toggle-btn"        onclick="setVista('trimestre')" id="btn-trimestre">Trimestre</button>
+          <button class="gantt-toggle-btn"        onclick="setVista('mes')"       id="btn-mes">Mes</button>
+        </div>
+
+        <!-- SVG Gantt -->
+        <div id="ganttWrap">
+          <svg id="ganttSvg" height="200" role="img" aria-label="Gantt de avance de obra">
+            <title>Gantt de avance de obra</title>
+          </svg>
+        </div>
+
+        <!-- Leyenda -->
+        <div class="flex flex-wrap gap-5 pt-1 border-t border-gray-100">
+          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:28px;height:12px;background:#f97316;border-radius:3px"></span>Avance real</span>
+          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:28px;height:8px;background:#6366f1;border-radius:4px"></span>Línea base</span>
+          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:2px;height:14px;background:#ef4444;border-radius:1px"></span>Hoy</span>
+          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:50%"></span>Tarea completada</span>
+          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:50%"></span>En curso</span>
+          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:50%"></span>Atrasada</span>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="card p-6 flex flex-col gap-3">
+        <p class="text-xs font-semibold text-gray-400 uppercase">Proyección de Cierre</p>
+        <div class="comp-box comp-plan">
+          <p class="text-xs font-semibold text-indigo-500 mb-1">📅 Inicio planificado</p>
+          <p id="fInicio" class="text-sm font-bold text-gray-800">—</p>
+        </div>
+        <div class="comp-box comp-plan">
+          <p class="text-xs font-semibold text-indigo-500 mb-1">🏁 Fin planificado (base)</p>
+          <p id="fFinPlan" class="text-sm font-bold text-gray-800">—</p>
+        </div>
+        <div id="fFinEstBox" class="comp-box comp-est-ok">
+          <p id="fFinEstLbl" class="text-xs font-semibold text-emerald-600 mb-1">🔮 Fin estimado (real)</p>
+          <p id="fFinEst" class="text-sm font-bold text-gray-800">—</p>
+        </div>
+        <div id="desvDiasBox" class="rounded-xl p-4 text-center bg-gray-50 border border-gray-100 mt-auto">
+          <p id="desvDiasVal" class="text-2xl font-extrabold text-gray-500">—</p>
+          <p id="desvDiasLbl" class="text-xs font-semibold mt-1 text-gray-400">días de desvío</p>
+        </div>
+
+        <!-- Tareas próximas -->
+        <div class="border-t border-gray-100 pt-3">
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Próximas tareas</p>
+          <div id="tareasProximas" class="flex flex-col gap-1.5"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p id="ultimaAct" class="text-center text-xs text-gray-300 pb-4"></p>
+</main>
+<div id="toast"></div>
+<div id="ganttTooltip" style="position:fixed;display:none;background:#1e293b;color:#fff;padding:7px 13px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3)"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIGURACIÓN
+   ─────────────────────────────────────────────────────
+   BASE_SHEET_ID   → ID del Google Sheets con el INDICE
+   INDICE_GID      → gid del tab INDICE en Google Sheets
+   API_BASE        → URL base de tu deploy en Vercel
+                     Ej: 'https://mi-tablero.vercel.app'
+                     En desarrollo: '' (vacío, usa rutas relativas)
+   ═══════════════════════════════════════════════════════ */
+const BASE_SHEET_ID = 'TU_GOOGLE_SHEET_ID';
+const INDICE_GID    = '0';
+const API_BASE      = ''; /* En Vercel va vacío; en local: 'http://localhost:3000' */
+
+const PROXIES = [
+  u => u,
+  u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+  u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)
+];
+
+let indiceObras = [];
+let obraActual  = null;
+let smData      = null;
+let chart       = null;
+let vistaGantt  = 'total';
+const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString('es-AR');
+
+/* ─── Helpers ─── */
+function cleanNum(s) {
+  if (!s && s !== 0) return 0;
+  const c = String(s).trim().replace(/^[oO]\./, '0.').replace(/\$/g,'').replace(/\./g,'').replace(',','.');
+  return parseFloat(c.replace(/[^0-9.-]/g, '')) || 0;
+}
+function parseCSVLine(line) {
+  const r = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { if (inQ && line[i+1]==='"'){cur+='"';i++} else inQ=!inQ; }
+    else if (ch === ',' && !inQ) { r.push(cur.trim()); cur=''; }
+    else cur += ch;
+  }
+  r.push(cur.trim()); return r;
+}
+const fmtFecha = d => d instanceof Date
+  ? d.toLocaleDateString('es-AR', {day:'2-digit',month:'short',year:'numeric'})
+  : '—';
+const fmtCorta = d => d instanceof Date
+  ? d.toLocaleDateString('es-AR', {day:'2-digit',month:'short'})
+  : '—';
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(s + 'T12:00:00');
+  return isNaN(d) ? null : d;
+}
+
+/* ─── Google Sheets INDICE ─── */
+async function fetchCSV(url) {
+  let lastErr;
+  for (const proxy of PROXIES) {
+    try {
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 8000);
+      const res  = await fetch(proxy(url + '&_t=' + Date.now()), { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const t = await res.text();
+      if (t.length < 10) throw new Error('Vacío');
+      return t;
+    } catch(e) { lastErr = e; }
+  }
+  throw new Error('Sin conexión: ' + (lastErr?.message || ''));
+}
+
+function parseIndice(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  const hdrs  = parseCSVLine(lines[0]).map(h => h.replace(/"/g,'').trim().toLowerCase());
+  return lines.slice(1).map(line => {
+    const cols = parseCSVLine(line);
+    const obj  = {};
+    hdrs.forEach((h, i) => { obj[h] = (cols[i]||'').replace(/"/g,'').trim(); });
+    return obj;
+  }).filter(r => r.nombre || r.obra);
+}
+
+function parseObraKV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  const kv = {};
+  lines.slice(1).forEach(line => {
+    const i = line.indexOf(',');
+    if (i === -1) return;
+    const k = line.slice(0,i).trim().toLowerCase().replace(/\s+/g,'_').replace(/"/g,'');
+    const v = line.slice(i+1).trim().replace(/^"|"$/g,'');
+    kv[k] = v;
+  });
+  return {
+    nombre:       kv['nombre'] || kv['nombre_de_obra'] || 'Obra',
+    presupuesto:  cleanNum(kv['presupuesto'] || '0'),
+    gastoReal:    cleanNum(kv['gasto_real']  || '0'),
+    ultAct:       kv['ultima_actualizacion'] || '',
+    smartsheetId: kv['smartsheet_id'] || ''
+  };
+}
+
+/* ─── Smartsheet via API propia ─── */
+async function fetchSmartsheet(sheetId) {
+  const url = `${API_BASE}/api/obra?id=${sheetId}`;
+  const res  = await fetch(url);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Error al consultar Smartsheet');
+  }
+  return res.json();
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER ECONÓMICO
+   ═══════════════════════════════════════════════════════ */
+function renderEco(obra) {
+  const proy    = obra.presupuesto;
+  const real    = obra.gastoReal;
+  const desv    = real - proy;
+  const desvPct = proy ? ((desv/proy)*100).toFixed(1) : '0.0';
+  const neg     = desv > 0;
+
+  document.getElementById('kpiProy').textContent      = fmt(proy);
+  document.getElementById('kpiReal').textContent      = fmt(real);
+  document.getElementById('kpiDesvPct').textContent   = (neg?'+':'') + desvPct + '%';
+  document.getElementById('kpiDesvMonto').textContent = (neg?'+':'-') + fmt(Math.abs(desv));
+  ['chipPct','chipMonto'].forEach(id => {
+    document.getElementById(id).className = (neg?'chip-neg':'chip-pos') + ' rounded-xl px-4 py-3 text-center';
+  });
+
+  const ultEl = document.getElementById('ultimaActHoja');
+  if (obra.ultAct) {
+    ultEl.textContent = '📅 Datos al: ' + obra.ultAct;
+    ultEl.className   = 'text-xs font-semibold text-indigo-500 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full';
+  } else { ultEl.className = 'hidden'; }
+
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('gastoChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Presupuesto','Gasto Real'],
+      datasets: [{
+        data: [proy, real],
+        backgroundColor: ['rgba(99,102,241,0.82)', neg?'rgba(239,68,68,0.82)':'rgba(16,185,129,0.82)'],
+        borderRadius: 10, borderSkipped: false, barThickness: 80
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label:c=>' '+fmt(c.parsed.y)}} },
+      scales: {
+        x: { ticks:{color:'#475569',font:{size:13,weight:'600'}}, grid:{display:false} },
+        y: { ticks:{callback:v=>'$'+(v/1000000).toFixed(1)+'M',color:'#94a3b8'}, grid:{color:'#f1f5f9'} }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER TIEMPOS desde Smartsheet
+   ═══════════════════════════════════════════════════════ */
+function renderTiempos(sm) {
+  const { resumen, tareas } = sm;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const t0   = parseDate(resumen.fechaInicio);
+  const t1   = parseDate(resumen.fechaFin);
+  const b0   = parseDate(resumen.baseStart)  || t0;
+  const b1   = parseDate(resumen.baseFinish) || t1;
+  const av   = resumen.avance;
+
+  if (!t0 || !t1) return;
+
+  /* Avance físico */
+  document.getElementById('avLbl').textContent = av + '%';
+  setTimeout(() => {
+    document.getElementById('progFill').style.width = av + '%';
+    document.getElementById('progFill').textContent = av + '%';
+  }, 120);
+
+  /* Sidebar fechas */
+  document.getElementById('fInicio').textContent  = fmtFecha(b0);
+  document.getElementById('fFinPlan').textContent = fmtFecha(b1);
+  document.getElementById('fFinEst').textContent  = fmtFecha(t1);
+
+  const diffD = b1 ? Math.round((t1 - b1) / 86400000) : 0;
+  const estBox = document.getElementById('fFinEstBox');
+  const dBox   = document.getElementById('desvDiasBox');
+  if (diffD <= 0) {
+    estBox.className = 'comp-box comp-est-ok';
+    document.getElementById('fFinEstLbl').className = 'text-xs font-semibold text-emerald-600 mb-1';
+    dBox.className   = 'rounded-xl p-4 text-center bg-emerald-50 border border-emerald-100 mt-auto';
+    document.getElementById('desvDiasVal').textContent = diffD === 0 ? '0 días' : Math.abs(diffD)+' días';
+    document.getElementById('desvDiasVal').className   = 'text-2xl font-extrabold text-emerald-600';
+    document.getElementById('desvDiasLbl').textContent = diffD === 0 ? 'Sin desvío 🎉' : 'Adelantado 🚀';
+  } else {
+    estBox.className = 'comp-box comp-est-bad';
+    document.getElementById('fFinEstLbl').className = 'text-xs font-semibold text-rose-500 mb-1';
+    dBox.className   = 'rounded-xl p-4 text-center bg-rose-50 border border-rose-100 mt-auto';
+    document.getElementById('desvDiasVal').textContent = '+' + diffD + ' días';
+    document.getElementById('desvDiasVal').className   = 'text-2xl font-extrabold text-rose-600';
+    document.getElementById('desvDiasLbl').textContent = 'de retraso ⚠️';
+  }
+
+  /* Próximas tareas (no completadas, ordenadas por fecha de inicio) */
+  const proxEl = document.getElementById('tareasProximas');
+  proxEl.innerHTML = '';
+  const proximas = tareas
+    .filter(t => !t.completada && parseDate(t.inicio) >= today)
+    .sort((a,b) => new Date(a.inicio) - new Date(b.inicio))
+    .slice(0, 5);
+  const atrasadas = tareas
+    .filter(t => !t.completada && parseDate(t.fin) < today)
+    .slice(0, 3);
+
+  [...atrasadas, ...proximas].slice(0, 6).forEach(t => {
+    const atrasada = !t.completada && parseDate(t.fin) < today;
+    const d = document.createElement('div');
+    d.className = 'flex items-start gap-2';
+    d.innerHTML = `
+      <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;background:${atrasada?'#ef4444':t.completada?'#10b981':'#f59e0b'}"></span>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:11px;font-weight:600;color:${atrasada?'#ef4444':'#1e293b'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</p>
+        <p style="font-size:10px;color:#94a3b8">${fmtCorta(parseDate(t.inicio))} → ${fmtCorta(parseDate(t.fin))} · ${t.pct}%</p>
+      </div>`;
+    proxEl.appendChild(d);
+  });
+
+  if (!proximas.length && !atrasadas.length) {
+    proxEl.innerHTML = '<p style="font-size:11px;color:#94a3b8">Sin tareas próximas</p>';
+  }
+
+  /* Dibujar Gantt */
+  drawGantt(tareas, t0, t1, b0, b1, today, av);
+}
+
+/* ═══════════════════════════════════════════════════════
+   GANTT SVG
+   ═══════════════════════════════════════════════════════ */
+function setVista(v) {
+  vistaGantt = v;
+  ['total','trimestre','mes'].forEach(id => {
+    document.getElementById('btn-'+id).classList.toggle('active', id === v);
+  });
+  if (smData) {
+    const { resumen, tareas } = smData;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const t0 = parseDate(resumen.fechaInicio);
+    const t1 = parseDate(resumen.fechaFin);
+    const b0 = parseDate(resumen.baseStart) || t0;
+    const b1 = parseDate(resumen.baseFinish) || t1;
+    drawGantt(tareas, t0, t1, b0, b1, today, resumen.avance);
+  }
+}
+
+function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
+  const svg  = document.getElementById('ganttSvg');
+  const W    = svg.parentElement.clientWidth || 600;
+  svg.setAttribute('width', W);
+
+  /* Rango visible */
+  let vStart, vEnd;
+  const tMax = t1 > b1 ? t1 : b1;
+  const tMin = t0 < b0 ? t0 : b0;
+  if (vistaGantt === 'total') {
+    vStart = new Date(tMin.getTime() - 86400000*10);
+    vEnd   = new Date(tMax.getTime() + 86400000*10);
+  } else if (vistaGantt === 'trimestre') {
+    vStart = new Date(today.getTime() - 86400000*30);
+    vEnd   = new Date(today.getTime() + 86400000*60);
+  } else {
+    vStart = new Date(today.getTime() - 86400000*7);
+    vEnd   = new Date(today.getTime() + 86400000*23);
+  }
+
+  const PAD_L = 10, PAD_R = 10;
+  const chartW = W - PAD_L - PAD_R;
+  function px(date) {
+    if (!date) return PAD_L;
+    const ratio = (date - vStart) / (vEnd - vStart);
+    return PAD_L + Math.round(ratio * chartW);
+  }
+
+  /* Dimensiones filas */
+  const Y_AXIS  = 28;
+  const Y_REAL  = 72;
+  const Y_BASE  = 120;
+  const Y_TASKS = 155;
+  const H_SVG   = 185;
+  svg.setAttribute('height', H_SVG);
+
+  let html = '';
+
+  /* Fondo zebra por meses */
+  const cur = new Date(vStart.getFullYear(), vStart.getMonth(), 1);
+  let toggle = false;
+  while (cur <= vEnd) {
+    const next = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+    const x1 = Math.max(px(cur), PAD_L);
+    const x2 = Math.min(px(next), PAD_L+chartW);
+    if (x2 > x1) html += `<rect x="${x1}" y="38" width="${x2-x1}" height="${H_SVG-38}" fill="${toggle?'#f8fafc':'#fff'}"/>`;
+    toggle = !toggle;
+    cur.setMonth(cur.getMonth()+1);
+  }
+
+  /* Eje temporal */
+  getTimeLabels(vStart, vEnd).forEach(({date, label}) => {
+    const x = px(date);
+    if (x < PAD_L || x > PAD_L+chartW) return;
+    html += `<line x1="${x}" y1="38" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
+    html += `<text x="${x}" y="${Y_AXIS}" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Inter,sans-serif" font-weight="600">${label}</text>`;
+  });
+
+  /* Rótulos de filas */
+  html += `<text x="${PAD_L}" y="${Y_REAL-12}" font-size="9" fill="#f97316" font-family="Inter,sans-serif" font-weight="700">AVANCE REAL</text>`;
+  html += `<text x="${PAD_L}" y="${Y_BASE-8}" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">LÍNEA BASE</text>`;
+  html += `<text x="${PAD_L}" y="${Y_TASKS-4}" font-size="9" fill="#64748b" font-family="Inter,sans-serif" font-weight="700">TAREAS</text>`;
+
+  /* ── BARRA AVANCE REAL ── */
+  const barH  = 22;
+  const xT0   = px(t0);
+  const xT1   = px(t1);
+  const avFrac = avance / 100;
+  const durReal = t1 - t0;
+  const xAvEnd  = px(new Date(t0.getTime() + durReal * avFrac));
+
+  /* Fondo total real */
+  const rBgX1 = Math.max(xT0, PAD_L);
+  const rBgX2 = Math.min(xT1, PAD_L+chartW);
+  if (rBgX2 > rBgX1) html += `<rect x="${rBgX1}" y="${Y_REAL-barH/2}" width="${rBgX2-rBgX1}" height="${barH}" rx="5" fill="#fed7aa" opacity="0.5"/>`;
+
+  /* Porción ejecutada */
+  const avX1 = Math.max(xT0, PAD_L);
+  const avX2 = Math.min(xAvEnd, PAD_L+chartW);
+  if (avX2 > avX1) {
+    html += `<rect x="${avX1}" y="${Y_REAL-barH/2}" width="${avX2-avX1}" height="${barH}" rx="5" fill="#f97316"/>`;
+    if (avX2 - avX1 > 40) {
+      html += `<text x="${(avX1+avX2)/2}" y="${Y_REAL+4}" text-anchor="middle" font-size="11" fill="#fff" font-family="Inter,sans-serif" font-weight="800">${avance}%</text>`;
+    }
+  }
+
+  /* Extensión si hay retraso */
+  if (t1 > b1) {
+    const extX1 = Math.max(px(b1), PAD_L);
+    const extX2 = Math.min(xT1, PAD_L+chartW);
+    if (extX2 > extX1) {
+      html += `<rect x="${extX1}" y="${Y_REAL-barH/2}" width="${extX2-extX1}" height="${barH}" rx="5" fill="#fca5a5" opacity="0.6"/>`;
+      const dias = Math.round((t1-b1)/86400000);
+      if (extX2+40 < PAD_L+chartW) {
+        html += `<text x="${extX2+4}" y="${Y_REAL+4}" font-size="9" fill="#ef4444" font-family="Inter,sans-serif" font-weight="700">+${dias}d</text>`;
+      }
+    }
+  }
+
+  /* ── LÍNEA BASE ── */
+  const lbX1 = Math.max(px(b0), PAD_L);
+  const lbX2 = Math.min(px(b1), PAD_L+chartW);
+  if (lbX2 > lbX1) {
+    html += `<rect x="${lbX1}" y="${Y_BASE-4}" width="${lbX2-lbX1}" height="8" rx="4" fill="#6366f1"/>`;
+    html += `<circle cx="${lbX1}" cy="${Y_BASE}" r="5" fill="#6366f1" stroke="#fff" stroke-width="2"/>`;
+    html += `<circle cx="${lbX2}" cy="${Y_BASE}" r="5" fill="#6366f1" stroke="#fff" stroke-width="2"/>`;
+    if (px(b0) >= PAD_L) html += `<text x="${lbX1}" y="${Y_BASE+16}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">${fmtCorta(b0)}</text>`;
+    if (px(b1) <= PAD_L+chartW) html += `<text x="${lbX2}" y="${Y_BASE+16}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">${fmtCorta(b1)}</text>`;
+  }
+
+  /* ── PUNTOS DE TAREAS en eje inferior ── */
+  const tareasFiltradas = tareas.filter(t => !t.esPadre).slice(0, 30);
+  tareasFiltradas.forEach((t, i) => {
+    const td  = parseDate(t.inicio);
+    const tf  = parseDate(t.fin);
+    if (!td || !tf) return;
+    const xm  = px(new Date((td.getTime() + tf.getTime()) / 2));
+    if (xm < PAD_L || xm > PAD_L+chartW) return;
+    const atrasada = !t.completada && tf < today;
+    const col = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
+    const lbl = t.nombre.length > 20 ? t.nombre.slice(0,18)+'…' : t.nombre;
+    const tip = `${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
+    html += `<circle class="hito-dot" cx="${xm}" cy="${Y_TASKS}" r="5" fill="${col}" stroke="#fff" stroke-width="2"
+      onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"/>`;
+    html += `<line x1="${xm}" y1="${Y_TASKS-5}" x2="${xm}" y2="${Y_BASE+14}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>`;
+  });
+
+  /* ── LÍNEA HOY ── */
+  const xH = px(today);
+  if (xH >= PAD_L && xH <= PAD_L+chartW) {
+    html += `<line x1="${xH}" y1="38" x2="${xH}" y2="${H_SVG-5}" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>`;
+    html += `<rect x="${xH-18}" y="38" width="36" height="14" rx="4" fill="#ef4444"/>`;
+    html += `<text x="${xH}" y="48" text-anchor="middle" font-size="9" fill="#fff" font-family="Inter,sans-serif" font-weight="800">HOY</text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+function getTimeLabels(start, end) {
+  const days = (end - start) / 86400000;
+  const labels = [];
+  if (days <= 45) {
+    const cur = new Date(start);
+    cur.setDate(cur.getDate() + (1 - cur.getDay() + 7) % 7);
+    while (cur <= end) {
+      labels.push({ date: new Date(cur), label: fmtCorta(cur) });
+      cur.setDate(cur.getDate()+7);
+    }
+  } else if (days <= 200) {
+    const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    while (cur <= end) {
+      labels.push({ date: new Date(cur), label: cur.toLocaleDateString('es-AR',{month:'short',year:'2-digit'}) });
+      cur.setMonth(cur.getMonth()+1);
+    }
+  } else {
+    const cur = new Date(start.getFullYear(), Math.floor(start.getMonth()/3)*3, 1);
+    while (cur <= end) {
+      labels.push({ date: new Date(cur), label: `Q${Math.floor(cur.getMonth()/3)+1} ${cur.getFullYear().toString().slice(2)}` });
+      cur.setMonth(cur.getMonth()+3);
+    }
+  }
+  return labels;
+}
+
+function showTip(e, text) {
+  const t = document.getElementById('ganttTooltip');
+  t.textContent = text; t.style.display = 'block';
+  t.style.left = (e.clientX+12)+'px'; t.style.top = (e.clientY-30)+'px';
+}
+function hideTip() { document.getElementById('ganttTooltip').style.display='none'; }
+
+/* ═══════════════════════════════════════════════════════
+   CARGA DE DATOS
+   ═══════════════════════════════════════════════════════ */
+async function cargarIndice() {
+  if (BASE_SHEET_ID === 'TU_GOOGLE_SHEET_ID') return cargarDemo();
+  const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${INDICE_GID}`;
+  const text = await fetchCSV(url);
+  indiceObras = parseIndice(text);
+  if (!indiceObras.length) throw new Error('El INDICE está vacío.');
+
+  const sel = document.getElementById('selectorObra');
+  sel.innerHTML = '';
+  indiceObras.forEach((r, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = (r.nombre||r.obra) + (r.estado ? ' · '+r.estado : '');
+    sel.appendChild(opt);
+  });
+  await cargarObra(0);
+}
+
+async function cargarObra(idx) {
+  const meta = indiceObras[idx];
+  if (!meta) return;
+
+  /* Si es demo */
+  if (meta._demo) {
+    obraActual = meta._demo.eco;
+    smData     = meta._demo.sm;
+    renderEco(obraActual);
+    renderTiempos(smData);
+    return;
+  }
+
+  /* Cargar datos económicos desde Google Sheets */
+  const gid  = meta.gid || '';
+  if (gid) {
+    const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${gid}`;
+    const text = await fetchCSV(url);
+    obraActual = parseObraKV(text);
+  } else {
+    obraActual = { nombre: meta.nombre||meta.obra, presupuesto:0, gastoReal:0, ultAct:'', smartsheetId: meta.smartsheet_id||'' };
+  }
+  renderEco(obraActual);
+
+  /* Cargar tiempos desde Smartsheet */
+  const smId = meta.smartsheet_id || obraActual.smartsheetId || '';
+  if (!smId) {
+    toast('⚠️ Esta obra no tiene smartsheet_id en el INDICE', 5000);
+    return;
+  }
+  smData = await fetchSmartsheet(smId);
+  renderTiempos(smData);
+}
+
+function cambiarObra() {
+  const idx = document.getElementById('selectorObra').selectedIndex;
+  setLoading(true);
+  cargarObra(idx)
+    .catch(e => toast('❌ ' + e.message, 6000))
+    .finally(() => setLoading(false));
+}
+
+/* ─── Demo sin credenciales ─── */
+function cargarDemo() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const ds = d => { const x = new Date(today); x.setDate(x.getDate()+d); return x.toISOString().slice(0,10); };
+
+  const demos = [
+    {
+      nombre: 'Edificio Residencial Norte', estado: 'En curso',
+      eco: { nombre:'Edificio Residencial Norte', presupuesto:18500000, gastoReal:14200000, ultAct:'10/05/2025' },
+      sm: {
+        resumen: { nombre:'Edificio Residencial Norte', avance:72, fechaInicio:ds(-180), fechaFin:ds(110), baseStart:ds(-180), baseFinish:ds(90) },
+        tareas: [
+          { id:1, nivel:2, nombre:'Cimientos',     inicio:ds(-180), fin:ds(-150), pct:100, baseStart:ds(-180), baseFinish:ds(-150), completada:true,  esPadre:false },
+          { id:2, nivel:2, nombre:'Estructura N1', inicio:ds(-149), fin:ds(-90),  pct:100, baseStart:ds(-149), baseFinish:ds(-90),  completada:true,  esPadre:false },
+          { id:3, nivel:2, nombre:'Estructura N2', inicio:ds(-89),  fin:ds(-30),  pct:100, baseStart:ds(-89),  baseFinish:ds(-30),  completada:true,  esPadre:false },
+          { id:4, nivel:2, nombre:'Mampostería',   inicio:ds(-29),  fin:ds(20),   pct:60,  baseStart:ds(-29),  baseFinish:ds(10),   completada:false, esPadre:false },
+          { id:5, nivel:2, nombre:'Instalaciones', inicio:ds(21),   fin:ds(70),   pct:0,   baseStart:ds(11),   baseFinish:ds(60),   completada:false, esPadre:false },
+          { id:6, nivel:2, nombre:'Terminaciones', inicio:ds(71),   fin:ds(110),  pct:0,   baseStart:ds(61),   baseFinish:ds(90),   completada:false, esPadre:false },
+        ]
+      }
+    },
+    {
+      nombre: 'Local Comercial Centro', estado: 'En curso',
+      eco: { nombre:'Local Comercial Centro', presupuesto:6800000, gastoReal:7100000, ultAct:'10/05/2025' },
+      sm: {
+        resumen: { nombre:'Local Comercial Centro', avance:91, fechaInicio:ds(-200), fechaFin:ds(15), baseStart:ds(-200), baseFinish:ds(-5) },
+        tareas: [
+          { id:1, nivel:2, nombre:'Demolición',   inicio:ds(-200), fin:ds(-170), pct:100, baseStart:ds(-200), baseFinish:ds(-170), completada:true,  esPadre:false },
+          { id:2, nivel:2, nombre:'Tabiques',     inicio:ds(-169), fin:ds(-100), pct:100, baseStart:ds(-169), baseFinish:ds(-100), completada:true,  esPadre:false },
+          { id:3, nivel:2, nombre:'Electricidad', inicio:ds(-99),  fin:ds(-50),  pct:100, baseStart:ds(-99),  baseFinish:ds(-50),  completada:true,  esPadre:false },
+          { id:4, nivel:2, nombre:'Pisos',        inicio:ds(-49),  fin:ds(-10),  pct:100, baseStart:ds(-49),  baseFinish:ds(-10),  completada:true,  esPadre:false },
+          { id:5, nivel:2, nombre:'Frente',       inicio:ds(-9),   fin:ds(15),   pct:40,  baseStart:ds(-9),   baseFinish:ds(-5),   completada:false, esPadre:false },
+        ]
+      }
+    },
+    {
+      nombre: 'Planta Industrial Sur', estado: 'Pausada',
+      eco: { nombre:'Planta Industrial Sur', presupuesto:42000000, gastoReal:18500000, ultAct:'10/05/2025' },
+      sm: {
+        resumen: { nombre:'Planta Industrial Sur', avance:38, fechaInicio:ds(-400), fechaFin:ds(320), baseStart:ds(-400), baseFinish:ds(250) },
+        tareas: [
+          { id:1, nivel:2, nombre:'Movimiento de suelos', inicio:ds(-400), fin:ds(-340), pct:100, baseStart:ds(-400), baseFinish:ds(-340), completada:true,  esPadre:false },
+          { id:2, nivel:2, nombre:'Fundaciones',          inicio:ds(-339), fin:ds(-250), pct:100, baseStart:ds(-339), baseFinish:ds(-250), completada:true,  esPadre:false },
+          { id:3, nivel:2, nombre:'Estructura nave 1',    inicio:ds(-249), fin:ds(-150), pct:100, baseStart:ds(-249), baseFinish:ds(-150), completada:true,  esPadre:false },
+          { id:4, nivel:2, nombre:'Cerramiento nave 1',   inicio:ds(-149), fin:ds(-30),  pct:20,  baseStart:ds(-149), baseFinish:ds(-60),  completada:false, esPadre:false },
+          { id:5, nivel:2, nombre:'Estructura nave 2',    inicio:ds(-29),  fin:ds(100),  pct:0,   baseStart:ds(-29),  baseFinish:ds(80),   completada:false, esPadre:false },
+          { id:6, nivel:2, nombre:'Instalaciones',        inicio:ds(101),  fin:ds(220),  pct:0,   baseStart:ds(81),   baseFinish:ds(180),  completada:false, esPadre:false },
+          { id:7, nivel:2, nombre:'Entrega',              inicio:ds(221),  fin:ds(320),  pct:0,   baseStart:ds(181),  baseFinish:ds(250),  completada:false, esPadre:false },
+        ]
+      }
+    }
+  ];
+
+  indiceObras = demos.map(d => ({ nombre:d.nombre, estado:d.estado, _demo:d }));
+  const sel = document.getElementById('selectorObra');
+  sel.innerHTML = '';
+  indiceObras.forEach((r, i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = r.nombre + ' · ' + r.estado;
+    sel.appendChild(opt);
+  });
+
+  obraActual = demos[0].eco;
+  smData     = demos[0].sm;
+  renderEco(obraActual);
+  renderTiempos(smData);
+  toast('🛠️ Modo demo — configurá las credenciales para conectar tu hoja', 6000);
+}
+
+/* ─── Loading state ─── */
+function setLoading(on) {
+  document.getElementById('loadingBar').classList.toggle('hidden', !on);
+  document.getElementById('btnRefresh').disabled = on;
+  document.getElementById('refreshIcon').innerHTML = on ? '<span class="spin"></span>' : '🔄';
+}
+
+/* ─── Toast ─── */
+function toast(msg, dur=3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+/* ─── Refrescar ─── */
+async function refrescar() {
+  setLoading(true);
+  document.getElementById('errorBox').classList.add('hidden');
+  try {
+    await cargarIndice();
+    document.getElementById('mainContent').classList.replace('opacity-0','opacity-100');
+    document.getElementById('ultimaAct').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-AR');
+    if (BASE_SHEET_ID !== 'TU_GOOGLE_SHEET_ID') toast('✅ ' + indiceObras.length + ' obra(s) cargadas');
+  } catch(e) {
+    document.getElementById('errorBox').classList.remove('hidden');
+    document.getElementById('errorMsg').textContent = e.message;
+    toast('❌ ' + e.message, 8000);
+    cargarDemo();
+    document.getElementById('mainContent').classList.replace('opacity-0','opacity-100');
+  } finally { setLoading(false); }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('hdrFecha').textContent =
+    new Date().toLocaleDateString('es-AR', {day:'2-digit',month:'long',year:'numeric'});
+  refrescar();
+});
+
+window.addEventListener('resize', () => {
+  if (smData) {
+    const { resumen, tareas } = smData;
+    const today = new Date(); today.setHours(0,0,0,0);
+    drawGantt(tareas,
+      parseDate(resumen.fechaInicio), parseDate(resumen.fechaFin),
+      parseDate(resumen.baseStart)||parseDate(resumen.fechaInicio),
+      parseDate(resumen.baseFinish)||parseDate(resumen.fechaFin),
+      today, resumen.avance);
+  }
+});
+</script>
+</body>
+</html>
