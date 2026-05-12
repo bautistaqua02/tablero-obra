@@ -554,11 +554,18 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   const svg  = document.getElementById('ganttSvg');
   const W    = svg.parentElement.clientWidth || 600;
   svg.setAttribute('width', W);
- 
+
+  /* Si no hay fechas validas, salir */
+  if (!t0 || !t1) {
+    console.log('[v0] drawGantt: fechas invalidas t0=', t0, 't1=', t1);
+    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#666">Sin datos de fechas</text>';
+    return;
+  }
+
   /* Rango visible */
   let vStart, vEnd;
-  const tMax = t1 > b1 ? t1 : b1;
-  const tMin = t0 < b0 ? t0 : b0;
+  const tMax = (t1 && b1) ? (t1 > b1 ? t1 : b1) : (t1 || b1);
+  const tMin = (t0 && b0) ? (t0 < b0 ? t0 : b0) : (t0 || b0);
   if (vistaGantt === 'total') {
     vStart = new Date(tMin.getTime() - 86400000*10);
     vEnd   = new Date(tMax.getTime() + 86400000*10);
