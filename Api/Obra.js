@@ -49,13 +49,13 @@ export default async function handler(req, res) {
     });
 
     /* Columnas clave — ajustá los nombres si en tu hoja se llaman diferente */
-    const COL = {
-      nombre:           colId(colMap, 'tarea','nombre','task name','actividad','name'),
-      inicio:           colId(colMap, 'inicio','start','fecha inicio','fecha de inicio'),
-      fin:              colId(colMap, 'fin','finish','end','fecha fin','fecha de fin'),
-      pct:              colId(colMap, '% completado','% complete','porcentaje','avance','percent complete'),
-      baseStart:        colId(colMap, 'baseline start','inicio base','inicio planificado'),
-      baseFinish:       colId(colMap, 'baseline finish','fin base','fin planificado'),
+   const COL = {
+      nombre:           colId(colMap, 'nombre de la tarea','tarea','nombre','task name','actividad','name'),
+      inicio:           colId(colMap, 'fecha inicio','inicio','start','fecha de inicio'),
+      fin:              colId(colMap, 'fecha final','fin','finish','end','fecha de fin'),
+      pct:              colId(colMap, '% completo','% completado','% complete','porcentaje','avance','percent complete'),
+      baseStart:        colId(colMap, 'comienzo de línea de base','baseline start','inicio base','inicio planificado'),
+      baseFinish:       colId(colMap, 'fin de línea de base','baseline finish','fin base','fin planificado'),
       predecesores:     colId(colMap, 'predecesores','predecessors'),
     };
 
