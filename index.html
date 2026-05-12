@@ -451,14 +451,22 @@ function renderEco(obra) {
 function renderTiempos(sm) {
   const { resumen, tareas } = sm;
   const today = new Date(); today.setHours(0,0,0,0);
- 
+
+  console.log('[v0] resumen recibido:', resumen);
+  console.log('[v0] fechaInicio:', resumen.fechaInicio, 'fechaFin:', resumen.fechaFin);
+
   const t0   = parseDate(resumen.fechaInicio);
   const t1   = parseDate(resumen.fechaFin);
   const b0   = parseDate(resumen.baseStart)  || t0;
   const b1   = parseDate(resumen.baseFinish) || t1;
   const av   = resumen.avance;
- 
-  if (!t0 || !t1) return;
+
+  console.log('[v0] t0 parseado:', t0, 't1 parseado:', t1, 'avance:', av);
+
+  if (!t0 || !t1) {
+    console.log('[v0] ERROR: fechas no parseadas, saliendo de renderTiempos');
+    return;
+  }
  
   /* Avance físico */
   document.getElementById('avLbl').textContent = av + '%';
@@ -523,7 +531,7 @@ function renderTiempos(sm) {
   drawGantt(tareas, t0, t1, b0, b1, today, av);
 }
  
-/* ═══════════════════════════════════════════════════════
+/* ════════════════════��══════════════════════════════════
    GANTT SVG
    ═══════════════════════════════════════════════════════ */
 function setVista(v) {
