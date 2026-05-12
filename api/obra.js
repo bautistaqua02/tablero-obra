@@ -82,12 +82,15 @@ export default async function handler(req, res) {
       : 0;
 
     const todasFechas = tareas.flatMap(t => [t.inicio, t.fin]).filter(Boolean).sort();
+    const todasBase = tareas.flatMap(t => [t.baseStart, t.baseFinish]).filter(Boolean).sort();
 
     const resumen = {
       nombre: sheet.name,
       avance: avanceGeneral,
       fechaInicio: todasFechas[0] || null,
       fechaFin: todasFechas[todasFechas.length - 1] || null,
+      baseStart: todasBase[0] || todasFechas[0] || null,
+      baseFinish: todasBase[todasBase.length - 1] || todasFechas[todasFechas.length - 1] || null,
       totalTareas: tareas.length,
       completadas: tareas.filter(t => t.completada).length,
     };
