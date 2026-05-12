@@ -7,7 +7,7 @@
 
 const SMARTSHEET_BASE = 'https://api.smartsheet.com/2.0';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   /* CORS — permite que tu HTML llame a esta función */
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
