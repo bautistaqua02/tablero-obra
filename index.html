@@ -55,9 +55,53 @@ body{background:#f0f4f8}
       <button onclick="refrescar()" id="btnRefresh" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-all">
         <span id="refreshIcon">🔄</span> Refrescar
       </button>
+      <button onclick="abrirConfig()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-3 py-2 rounded-xl transition-all" title="Configuracion">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
     </div>
   </div>
 </header>
+
+<!-- MODAL CONFIGURACION -->
+<div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+  <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-lg font-bold text-gray-800">Configuracion de Linea Base</h3>
+      <button onclick="cerrarConfig()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    
+    <div class="space-y-4">
+      <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <p class="text-xs font-semibold text-blue-700 mb-1">Linea Base (Revision 0)</p>
+        <p class="text-xs text-blue-600">Fechas originales del cronograma planificado</p>
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Inicio Linea Base</label>
+        <input type="date" id="cfgBaseStart" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      </div>
+      
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Fin Linea Base</label>
+        <input type="date" id="cfgBaseFinish" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      </div>
+      
+      <hr class="my-4">
+      
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="cfgUsarManual" class="w-4 h-4 text-indigo-600 rounded">
+        <label for="cfgUsarManual" class="text-sm text-gray-700">Usar fechas manuales en vez de Smartsheet</label>
+      </div>
+    </div>
+    
+    <div class="flex gap-3 mt-6">
+      <button onclick="cerrarConfig()" class="flex-1 px-4 py-2 border border-gray-300 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancelar</button>
+      <button onclick="guardarConfig()" class="flex-1 px-4 py-2 bg-indigo-600 rounded-xl text-sm font-semibold text-white hover:bg-indigo-700">Guardar</button>
+    </div>
+  </div>
+</div>
  
 <div id="loadingBar" class="h-1 bg-indigo-500 hidden"></div>
  
@@ -220,6 +264,40 @@ let smData      = null;
 let chart       = null;
 let vistaGantt  = 'total';
 const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString('es-AR');
+
+/* ─── Configuracion Linea Base ─── */
+function getConfig() {
+  const saved = localStorage.getItem('tableroConfig');
+  return saved ? JSON.parse(saved) : { usarManual: false, baseStart: null, baseFinish: null };
+}
+
+function saveConfig(cfg) {
+  localStorage.setItem('tableroConfig', JSON.stringify(cfg));
+}
+
+function abrirConfig() {
+  const cfg = getConfig();
+  document.getElementById('cfgBaseStart').value = cfg.baseStart || '';
+  document.getElementById('cfgBaseFinish').value = cfg.baseFinish || '';
+  document.getElementById('cfgUsarManual').checked = cfg.usarManual || false;
+  document.getElementById('configModal').classList.remove('hidden');
+}
+
+function cerrarConfig() {
+  document.getElementById('configModal').classList.add('hidden');
+}
+
+function guardarConfig() {
+  const cfg = {
+    baseStart: document.getElementById('cfgBaseStart').value || null,
+    baseFinish: document.getElementById('cfgBaseFinish').value || null,
+    usarManual: document.getElementById('cfgUsarManual').checked
+  };
+  saveConfig(cfg);
+  cerrarConfig();
+  showToast('Configuracion guardada');
+  if (smData) renderTiempos(smData);
+}
  
 /* ─── Helpers ─── */
 function cleanNum(s) {
@@ -452,22 +530,26 @@ function renderEco(obra) {
 function renderTiempos(sm) {
   const { resumen, tareas } = sm;
   const today = new Date(); today.setHours(0,0,0,0);
-
-  console.log('[v0] resumen recibido:', resumen);
-  console.log('[v0] fechaInicio:', resumen.fechaInicio, 'fechaFin:', resumen.fechaFin);
-
+  
+  /* Obtener configuracion de linea base */
+  const cfg = getConfig();
+  
   const t0   = parseDate(resumen.fechaInicio);
   const t1   = parseDate(resumen.fechaFin);
-  const b0   = parseDate(resumen.baseStart)  || t0;
-  const b1   = parseDate(resumen.baseFinish) || t1;
+  
+  /* Usar fechas manuales si estan configuradas, sino las de Smartsheet */
+  let b0, b1;
+  if (cfg.usarManual && cfg.baseStart && cfg.baseFinish) {
+    b0 = parseDate(cfg.baseStart);
+    b1 = parseDate(cfg.baseFinish);
+  } else {
+    b0 = parseDate(resumen.baseStart) || t0;
+    b1 = parseDate(resumen.baseFinish) || t1;
+  }
+  
   const av   = resumen.avance;
 
-  console.log('[v0] t0 parseado:', t0, 't1 parseado:', t1, 'avance:', av);
-
-  if (!t0 || !t1) {
-    console.log('[v0] ERROR: fechas no parseadas, saliendo de renderTiempos');
-    return;
-  }
+  if (!t0 || !t1) return;
  
   /* Avance físico */
   document.getElementById('avLbl').textContent = av + '%';
@@ -558,7 +640,6 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
 
   /* Si no hay fechas validas, salir */
   if (!t0 || !t1) {
-    console.log('[v0] drawGantt: fechas invalidas t0=', t0, 't1=', t1);
     svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#666">Sin datos de fechas</text>';
     return;
   }
