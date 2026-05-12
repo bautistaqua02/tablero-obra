@@ -245,8 +245,9 @@ const fmtCorta = d => d instanceof Date
   : '—';
 function parseDate(s) {
   if (!s) return null;
-  const d = new Date(s + 'T12:00:00');
-  return isNaN(d) ? null : d;
+  // Si ya tiene T (formato ISO completo), usar directo. Sino agregar hora
+  const d = s.includes('T') ? new Date(s) : new Date(s + 'T12:00:00');
+  return isNaN(d.getTime()) ? null : d;
 }
  
 /* ─── Google Sheets (no usado en modo directo, se mantiene por compatibilidad) ─── */
