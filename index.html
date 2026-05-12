@@ -625,10 +625,17 @@ function setVista(v) {
   if (smData) {
     const { resumen, tareas } = smData;
     const today = new Date(); today.setHours(0,0,0,0);
+    const cfg = getConfig();
     const t0 = parseDate(resumen.fechaInicio);
     const t1 = parseDate(resumen.fechaFin);
-    const b0 = parseDate(resumen.baseStart) || t0;
-    const b1 = parseDate(resumen.baseFinish) || t1;
+    let b0, b1;
+    if (cfg.usarManual && cfg.baseStart && cfg.baseFinish) {
+      b0 = parseDate(cfg.baseStart);
+      b1 = parseDate(cfg.baseFinish);
+    } else {
+      b0 = parseDate(resumen.baseStart) || t0;
+      b1 = parseDate(resumen.baseFinish) || t1;
+    }
     drawGantt(tareas, t0, t1, b0, b1, today, resumen.avance);
   }
 }
@@ -891,11 +898,18 @@ window.addEventListener('resize', () => {
   if (smData) {
     const { resumen, tareas } = smData;
     const today = new Date(); today.setHours(0,0,0,0);
-    drawGantt(tareas,
-      parseDate(resumen.fechaInicio), parseDate(resumen.fechaFin),
-      parseDate(resumen.baseStart)||parseDate(resumen.fechaInicio),
-      parseDate(resumen.baseFinish)||parseDate(resumen.fechaFin),
-      today, resumen.avance);
+    const cfg = getConfig();
+    const t0 = parseDate(resumen.fechaInicio);
+    const t1 = parseDate(resumen.fechaFin);
+    let b0, b1;
+    if (cfg.usarManual && cfg.baseStart && cfg.baseFinish) {
+      b0 = parseDate(cfg.baseStart);
+      b1 = parseDate(cfg.baseFinish);
+    } else {
+      b0 = parseDate(resumen.baseStart) || t0;
+      b1 = parseDate(resumen.baseFinish) || t1;
+    }
+    drawGantt(tareas, t0, t1, b0, b1, today, resumen.avance);
   }
 });
 </script>
