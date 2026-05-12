@@ -1,6 +1,6 @@
 const SMARTSHEET_BASE = 'https://api.smartsheet.com/2.0';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   /* CORS */
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -56,11 +56,11 @@ export default async function handler(req, res) {
       };
 
       const nombre = get(COL.nombre);
-      const inicio = get(COL.inicio);
-      const fin = get(COL.fin);
+      const inicio = formatDate(get(COL.inicio));
+      const fin = formatDate(get(COL.fin));
       const pct = parseFloat(get(COL.pct)) || 0;
 
-      if (!nombre || !inicio || !fin) return;
+      if (!nombre) return;
 
       tareas.push({
         id: row.id,
@@ -69,20 +69,21 @@ export default async function handler(req, res) {
         inicio,
         fin,
         pct: Math.round(pct),
-        baseStart: get(COL.baseStart) || inicio,
-        baseFinish: get(COL.baseFinish) || fin,
+        baseStart: formatDate(get(COL.baseStart)) || inicio,
+        baseFinish: formatDate(get(COL.baseFinish)) || fin,
         completada: pct >= 100,
         esPadre: row.hasChildren || false,
       });
     });
 
     /* Resumen */
-    const avanceGeneral = tareas.length
-      ? Math.round(tareas.reduce((s, t) => s + t.pct, 0) / tareas.length)
+    const tareasConFechas = tareas.filter(t => t.inicio && t.fin);
+    const avanceGeneral = tareasConFechas.length
+      ? Math.round(tareasConFechas.reduce((s, t) => s + t.pct, 0) / tareasConFechas.length)
       : 0;
 
-    const todasFechas = tareas.flatMap(t => [t.inicio, t.fin]).filter(Boolean).sort();
-    const todasBase = tareas.flatMap(t => [t.baseStart, t.baseFinish]).filter(Boolean).sort();
+    const todasFechas = tareasConFechas.flatMap(t => [t.inicio, t.fin]).filter(Boolean).sort();
+    const todasBase = tareasConFechas.flatMap(t => [t.baseStart, t.baseFinish]).filter(Boolean).sort();
 
     const resumen = {
       nombre: sheet.name,
@@ -91,20 +92,36 @@ export default async function handler(req, res) {
       fechaFin: todasFechas[todasFechas.length - 1] || null,
       baseStart: todasBase[0] || todasFechas[0] || null,
       baseFinish: todasBase[todasBase.length - 1] || todasFechas[todasFechas.length - 1] || null,
-      totalTareas: tareas.length,
-      completadas: tareas.filter(t => t.completada).length,
+      totalTareas: tareasConFechas.length,
+      completadas: tareasConFechas.filter(t => t.completada).length,
     };
 
-    return res.status(200).json({ resumen, tareas, columnas: Object.keys(colMap) });
+    return res.status(200).json({ resumen, tareas: tareasConFechas, columnas: Object.keys(colMap) });
 
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
-}
+};
 
 function colId(map, ...nombres) {
   for (const n of nombres) {
     if (map[n]) return map[n];
   }
   return null;
+}
+
+function formatDate(val) {
+  if (!val) return null;
+  // Si ya es formato YYYY-MM-DD
+  if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) {
+    return val.substring(0, 10);
+  }
+  // Si es timestamp o Date
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString().substring(0, 10);
+  } catch {
+    return null;
+  }
 }
