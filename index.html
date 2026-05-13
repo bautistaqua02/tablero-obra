@@ -4,38 +4,98 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Tablero Ejecutivo de Obra</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-*{font-family:'Inter',sans-serif;box-sizing:border-box}
-body{background:#f0f4f8}
-.card{background:#fff;border-radius:18px;box-shadow:0 2px 4px rgba(0,0,0,.05),0 6px 20px rgba(0,0,0,.07)}
-.chip-pos{background:#ecfdf5;border:1.5px solid #6ee7b7;color:#065f46}
-.chip-neg{background:#fff1f2;border:1.5px solid #fda4af;color:#9f1239}
-.sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.25rem}
-#toast{position:fixed;bottom:24px;right:24px;z-index:100;background:#1e293b;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-#toast.show{transform:translateY(0);opacity:1}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.comp-box{border-radius:10px;padding:12px 14px;border-left:4px solid}
-.comp-plan{border-color:#6366f1;background:#f5f3ff}
-.comp-est-ok{border-color:#10b981;background:#ecfdf5}
-.comp-est-bad{border-color:#ef4444;background:#fff1f2}
-.prog-track{background:#e2e8f0;border-radius:99px;height:28px;overflow:hidden}
-.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#f97316,#fb923c);width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:14px;font-size:12px;font-weight:800;color:#fff;white-space:nowrap}
-.gantt-toggle-btn{padding:5px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;cursor:pointer;transition:all .2s}
-.gantt-toggle-btn.active{background:#6366f1;border-color:#6366f1;color:#fff}
-#ganttWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-#ganttSvg{display:block;min-width:600px}
-.hito-dot{cursor:pointer}
+  :root {
+    --indigo: #4f46e5;
+    --indigo-light: #eef2ff;
+    --orange: #f97316;
+    --orange-light: #fff7ed;
+    --green: #10b981;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --surface: #ffffff;
+    --bg: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --subtle: #94a3b8;
+  }
+  * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); }
+ 
+  .card { background: var(--surface); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); }
+ 
+  /* chips */
+  .chip-pos { background: #ecfdf5; border: 1.5px solid #6ee7b7; color: #065f46; }
+  .chip-neg { background: #fff1f2; border: 1.5px solid #fda4af; color: #9f1239; }
+ 
+  /* select */
+  .sel { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .75rem center; padding-right: 2.25rem; }
+ 
+  /* toast */
+  #toast { position: fixed; bottom: 24px; right: 24px; z-index: 200; background: #1e293b; color: #fff; padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all .3s; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+  #toast.show { transform: translateY(0); opacity: 1; }
+ 
+  /* spinner */
+  .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+ 
+  /* progress bar */
+  .prog-track { background: #e2e8f0; border-radius: 99px; height: 28px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f97316, #fb923c); width: 0%; transition: width 1.2s cubic-bezier(.4,0,.2,1); display: flex; align-items: center; padding-left: 14px; font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; }
+ 
+  /* gantt toggle */
+  .gantt-toggle-btn { padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--border); background: #fff; color: var(--muted); cursor: pointer; transition: all .2s; }
+  .gantt-toggle-btn.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+ 
+  /* gantt scroll */
+  #ganttWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+  #ganttSvg { display: block; }
+ 
+  /* task tree */
+  .task-row { border-radius: 10px; transition: background .15s; cursor: pointer; }
+  .task-row:hover { background: #f8fafc; }
+  .task-row.padre { background: #f5f3ff; border-left: 3px solid var(--indigo); }
+  .task-row.padre:hover { background: #ede9fe; }
+  .task-children { overflow: hidden; transition: max-height .35s cubic-bezier(.4,0,.2,1); max-height: 0; }
+  .task-children.open { max-height: 2000px; }
+  .badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+  .badge-ok { background: #dcfce7; color: #166534; }
+  .badge-warn { background: #fef9c3; color: #92400e; }
+  .badge-err { background: #fee2e2; color: #991b1b; }
+  .badge-done { background: #e0e7ff; color: #3730a3; }
+ 
+  /* quarter bands */
+  .q-band-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .05em; }
+ 
+  /* desvio box */
+  .comp-box { border-radius: 10px; padding: 12px 14px; border-left: 4px solid; }
+  .comp-plan { border-color: var(--indigo); background: #eef2ff; }
+  .comp-est-ok { border-color: var(--green); background: #ecfdf5; }
+  .comp-est-bad { border-color: var(--red); background: #fff1f2; }
+ 
+  /* config modal */
+  #configModal { backdrop-filter: blur(4px); }
+ 
+  /* loading bar */
+  #loadingBar { height: 3px; background: linear-gradient(90deg, var(--indigo), var(--orange)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+ 
+  /* hito dot */
+  .hito-dot { cursor: pointer; }
+ 
+  /* section headers */
+  .section-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 </style>
 </head>
 <body class="min-h-screen">
  
 <!-- HEADER -->
 <header class="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
-  <div class="max-w-5xl mx-auto px-6 py-3 flex flex-wrap items-center gap-3 justify-between">
+  <div class="max-w-6xl mx-auto px-6 py-3 flex flex-wrap items-center gap-3 justify-between">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -52,7 +112,7 @@ body{background:#f0f4f8}
       <select id="selectorObra" onchange="cambiarObra()" class="sel bg-indigo-50 border border-indigo-200 text-indigo-800 font-semibold rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
         <option>Cargando...</option>
       </select>
-      <button onclick="refrescar()" id="btnRefresh" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-all">
+      <button onclick="refrescar(true)" id="btnRefresh" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-all">
         <span id="refreshIcon">🔄</span> Refrescar
       </button>
       <button onclick="abrirConfig()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-3 py-2 rounded-xl transition-all" title="Configuracion">
@@ -61,57 +121,45 @@ body{background:#f0f4f8}
     </div>
   </div>
 </header>
-
+ 
 <!-- MODAL CONFIGURACION -->
 <div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
   <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
     <div class="flex items-center justify-between mb-5">
-      <h3 class="text-lg font-bold text-gray-800">Configuracion de Linea Base</h3>
+      <h3 class="text-lg font-bold text-gray-800">Configuración de Línea Base</h3>
       <button onclick="cerrarConfig()" class="text-gray-400 hover:text-gray-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    
     <div class="space-y-4">
       <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <p class="text-xs font-semibold text-blue-700 mb-1">Linea Base (Revision 0)</p>
+        <p class="text-xs font-semibold text-blue-700 mb-1">Línea Base (Revisión 0)</p>
         <p class="text-xs text-blue-600">Fechas originales del cronograma planificado</p>
       </div>
-      
       <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Inicio Linea Base</label>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Inicio Línea Base</label>
         <input type="date" id="cfgBaseStart" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
-      
       <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Fin Linea Base</label>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Fin Línea Base</label>
         <input type="date" id="cfgBaseFinish" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
-      
       <hr class="my-4">
-      
       <div class="flex items-center gap-2">
         <input type="checkbox" id="cfgUsarManual" class="w-4 h-4 text-indigo-600 rounded">
         <label for="cfgUsarManual" class="text-sm text-gray-700">Usar fechas manuales en vez de Smartsheet</label>
       </div>
-      
-      <!-- Aclaraciones -->
       <details class="mt-4">
-        <summary class="text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700">Como se calculan las metricas</summary>
+        <summary class="text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700">Cómo se calculan las métricas</summary>
         <div class="mt-3 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 space-y-2">
-          <p><strong>Desvio en dias:</strong> Diferencia entre la Fecha Fin Estimada (real/actual) y la Fecha Fin de Linea Base (planificada).</p>
-          <p class="pl-3 border-l-2 border-gray-300">Formula: Fecha Fin Real - Fecha Fin Base</p>
-          
-          <p><strong>Desvio en %:</strong> Porcentaje del desvio respecto a la duracion original planificada.</p>
-          <p class="pl-3 border-l-2 border-gray-300">Formula: (Dias de desvio / Duracion Linea Base) x 100</p>
-          
-          <p><strong>Avance fisico:</strong> Promedio ponderado del porcentaje completado de todas las tareas del cronograma.</p>
-          
-          <p class="text-gray-400 mt-2 pt-2 border-t border-gray-200">Proximamente: SPI, CPI, curva S y mas indicadores.</p>
+          <p><strong>Desvío en días:</strong> Diferencia entre Fecha Fin Estimada y Fecha Fin de Línea Base.</p>
+          <p class="pl-3 border-l-2 border-gray-300">Fórmula: Fecha Fin Real − Fecha Fin Base</p>
+          <p><strong>Desvío en %:</strong> Porcentaje del desvío respecto a la duración original.</p>
+          <p class="pl-3 border-l-2 border-gray-300">Fórmula: (Días desvío / Duración Base) × 100</p>
+          <p><strong>Avance físico:</strong> Promedio ponderado por duración de tareas hoja (sin doble conteo de padres).</p>
         </div>
       </details>
     </div>
-    
     <div class="flex gap-3 mt-6">
       <button onclick="cerrarConfig()" class="flex-1 px-4 py-2 border border-gray-300 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancelar</button>
       <button onclick="guardarConfig()" class="flex-1 px-4 py-2 bg-indigo-600 rounded-xl text-sm font-semibold text-white hover:bg-indigo-700">Guardar</button>
@@ -119,21 +167,21 @@ body{background:#f0f4f8}
   </div>
 </div>
  
-<div id="loadingBar" class="h-1 bg-indigo-500 hidden"></div>
+<div id="loadingBar" class="h-1 hidden"></div>
  
-<div id="errorBox" class="hidden max-w-5xl mx-auto mt-6 px-6">
+<div id="errorBox" class="hidden max-w-6xl mx-auto mt-6 px-6">
   <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5">
     <p class="font-bold text-sm text-rose-700 mb-1">⚠️ Error de conexión</p>
     <p id="errorMsg" class="text-xs text-rose-500"></p>
   </div>
 </div>
  
-<main id="mainContent" class="max-w-5xl mx-auto px-6 py-8 space-y-8 opacity-0 transition-opacity duration-500">
+<main id="mainContent" class="max-w-6xl mx-auto px-6 py-8 space-y-8 opacity-0 transition-opacity duration-500">
  
   <!-- ══ PANEL ECONÓMICO ══ -->
   <section>
     <div class="flex items-center gap-3 mb-5">
-      <div class="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-lg">💰</div>
+      <div class="section-icon bg-indigo-100">💰</div>
       <div>
         <h2 class="text-base font-bold text-gray-800">Panel Económico</h2>
         <div class="flex items-center gap-2 mt-1 flex-wrap">
@@ -174,13 +222,12 @@ body{background:#f0f4f8}
   <!-- ══ PANEL DE TIEMPOS / GANTT ══ -->
   <section>
     <div class="flex items-center gap-3 mb-5">
-      <div class="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center text-lg">⏱️</div>
+      <div class="section-icon bg-orange-100">⏱️</div>
       <div>
         <h2 class="text-base font-bold text-gray-800">Panel de Tiempos</h2>
         <p class="text-xs text-gray-400">Gantt en tiempo real · datos desde Smartsheet</p>
       </div>
     </div>
- 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
       <div class="card p-6 lg:col-span-2 space-y-5">
  
@@ -196,9 +243,9 @@ body{background:#f0f4f8}
         <!-- Toggle vista -->
         <div class="flex items-center gap-2 flex-wrap">
           <span class="text-xs font-semibold text-gray-400 uppercase mr-1">Vista:</span>
-          <button class="gantt-toggle-btn active" onclick="setVista('total')"     id="btn-total">Obra completa</button>
-          <button class="gantt-toggle-btn"        onclick="setVista('trimestre')" id="btn-trimestre">Trimestre</button>
-          <button class="gantt-toggle-btn"        onclick="setVista('mes')"       id="btn-mes">Mes</button>
+          <button class="gantt-toggle-btn active" onclick="setVista('total')" id="btn-total">Obra completa</button>
+          <button class="gantt-toggle-btn" onclick="setVista('trimestre')" id="btn-trimestre">Trimestre</button>
+          <button class="gantt-toggle-btn" onclick="setVista('mes')" id="btn-mes">Mes</button>
         </div>
  
         <!-- SVG Gantt -->
@@ -213,13 +260,13 @@ body{background:#f0f4f8}
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:28px;height:12px;background:#f97316;border-radius:3px"></span>Avance real</span>
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:28px;height:8px;background:#6366f1;border-radius:4px"></span>Línea base</span>
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:2px;height:14px;background:#ef4444;border-radius:1px"></span>Hoy</span>
-          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:50%"></span>Tarea completada</span>
+          <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:50%"></span>Completada</span>
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:50%"></span>En curso</span>
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:50%"></span>Atrasada</span>
         </div>
       </div>
  
-      <!-- Sidebar -->
+      <!-- Sidebar tiempos -->
       <div class="card p-6 flex flex-col gap-3">
         <p class="text-xs font-semibold text-gray-400 uppercase">Proyección de Cierre</p>
         <div class="comp-box comp-plan">
@@ -234,40 +281,49 @@ body{background:#f0f4f8}
           <p id="fFinEstLbl" class="text-xs font-semibold text-emerald-600 mb-1">🔮 Fin estimado (real)</p>
           <p id="fFinEst" class="text-sm font-bold text-gray-800">—</p>
         </div>
- <div id="desvDiasBox" class="rounded-xl p-4 text-center bg-gray-50 border border-gray-100 mt-auto">
-  <p id="desvDiasVal" class="text-2xl font-extrabold text-gray-500">—</p>
-  <p id="desvDiasLbl" class="text-xs font-semibold mt-1 text-gray-400">dias de desvio</p>
-  <p id="desvPctVal" class="text-sm font-bold mt-2 text-gray-500">—</p>
-  </div>
- 
-        <!-- Tareas próximas -->
-        <div class="border-t border-gray-100 pt-3">
-          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Próximas tareas</p>
-          <div id="tareasProximas" class="flex flex-col gap-1.5"></div>
+        <div id="desvDiasBox" class="rounded-xl p-4 text-center bg-gray-50 border border-gray-100 mt-auto">
+          <p id="desvDiasVal" class="text-2xl font-extrabold text-gray-500">—</p>
+          <p id="desvDiasLbl" class="text-xs font-semibold mt-1 text-gray-400">dias de desvio</p>
+          <p id="desvPctVal" class="text-sm font-bold mt-2 text-gray-500">—</p>
         </div>
       </div>
     </div>
   </section>
  
+  <!-- ══ PANEL DE TAREAS ══ -->
+  <section>
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="section-icon bg-slate-100">📋</div>
+        <div>
+          <h2 class="text-base font-bold text-gray-800">Tareas Pendientes</h2>
+          <p class="text-xs text-gray-400">Clic en una tarea padre para ver sus subtareas</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="setFiltroTareas('todas')" id="ftbTodas" class="gantt-toggle-btn active text-xs">Todas</button>
+        <button onclick="setFiltroTareas('pendientes')" id="ftbPend" class="gantt-toggle-btn text-xs">Pendientes</button>
+        <button onclick="setFiltroTareas('atrasadas')" id="ftbAtr" class="gantt-toggle-btn text-xs">Atrasadas</button>
+        <button onclick="setFiltroTareas('proximas')" id="ftbProx" class="gantt-toggle-btn text-xs">Próximas 30d</button>
+      </div>
+    </div>
+    <div id="taskTree" class="card p-5 space-y-1.5"></div>
+  </section>
+ 
   <p id="ultimaAct" class="text-center text-xs text-gray-300 pb-4"></p>
 </main>
+ 
 <div id="toast"></div>
 <div id="ganttTooltip" style="position:fixed;display:none;background:#1e293b;color:#fff;padding:7px 13px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3)"></div>
  
 <script>
 /* ═══════════════════════════════════════════════════════
    CONFIGURACIÓN
-   ─────────────────────────────────────────────────────
-   API_BASE → URL base de tu deploy en Vercel
-              Ej: 'https://mi-tablero.vercel.app'
-              En desarrollo: '' (vacío, usa rutas relativas)
-   ═══════════════════════════════════════════════════════ */
-const BASE_SHEET_ID = '';
-const INDICE_GID    = '0';
-const API_BASE      = ''; /* En Vercel va vacío; en local: 'http://localhost:3000' */
- 
-/* ID de tu hoja de Smartsheet */
-const SMARTSHEET_ID = '5815789760237444';
+═══════════════════════════════════════════════════════ */
+const BASE_SHEET_ID  = '';
+const INDICE_GID     = '0';
+const API_BASE       = '';
+const SMARTSHEET_ID  = '5815789760237444';
  
 const PROXIES = [
   u => u,
@@ -275,44 +331,38 @@ const PROXIES = [
   u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)
 ];
  
-let indiceObras = [];
-let obraActual  = null;
-let smData      = null;
-let chart       = null;
-let vistaGantt  = 'total';
+let indiceObras  = [];
+let obraActual   = null;
+let smData       = null;
+let chart        = null;
+let vistaGantt   = 'total';
+let filtroTareas = 'todas';
+ 
 const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString('es-AR');
-
-/* ─── Configuracion Linea Base ─── */
+ 
+/* ─── Config línea base ─── */
 function getConfig() {
-  const saved = localStorage.getItem('tableroConfig');
-  return saved ? JSON.parse(saved) : { usarManual: false, baseStart: null, baseFinish: null };
+  const s = localStorage.getItem('tableroConfig');
+  return s ? JSON.parse(s) : { usarManual: false, baseStart: null, baseFinish: null };
 }
-
-function saveConfig(cfg) {
-  localStorage.setItem('tableroConfig', JSON.stringify(cfg));
-}
-
+function saveConfig(cfg) { localStorage.setItem('tableroConfig', JSON.stringify(cfg)); }
 function abrirConfig() {
   const cfg = getConfig();
-  document.getElementById('cfgBaseStart').value = cfg.baseStart || '';
-  document.getElementById('cfgBaseFinish').value = cfg.baseFinish || '';
+  document.getElementById('cfgBaseStart').value    = cfg.baseStart  || '';
+  document.getElementById('cfgBaseFinish').value   = cfg.baseFinish || '';
   document.getElementById('cfgUsarManual').checked = cfg.usarManual || false;
   document.getElementById('configModal').classList.remove('hidden');
 }
-
-function cerrarConfig() {
-  document.getElementById('configModal').classList.add('hidden');
-}
-
+function cerrarConfig() { document.getElementById('configModal').classList.add('hidden'); }
 function guardarConfig() {
   const cfg = {
-    baseStart: document.getElementById('cfgBaseStart').value || null,
-    baseFinish: document.getElementById('cfgBaseFinish').value || null,
-    usarManual: document.getElementById('cfgUsarManual').checked
+    baseStart:   document.getElementById('cfgBaseStart').value  || null,
+    baseFinish:  document.getElementById('cfgBaseFinish').value || null,
+    usarManual:  document.getElementById('cfgUsarManual').checked
   };
   saveConfig(cfg);
   cerrarConfig();
-  showToast('Configuracion guardada');
+  showToast('Configuración guardada');
   if (smData) renderTiempos(smData);
 }
  
@@ -340,12 +390,15 @@ const fmtCorta = d => d instanceof Date
   : '—';
 function parseDate(s) {
   if (!s) return null;
-  // Si ya tiene T (formato ISO completo), usar directo. Sino agregar hora
   const d = s.includes('T') ? new Date(s) : new Date(s + 'T12:00:00');
   return isNaN(d.getTime()) ? null : d;
 }
+function diasHasta(date) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((date - today) / 86400000);
+}
  
-/* ─── Google Sheets (no usado en modo directo, se mantiene por compatibilidad) ─── */
+/* ─── CSV fetch (modo Google Sheets) ─── */
 async function fetchCSV(url) {
   let lastErr;
   for (const proxy of PROXIES) {
@@ -362,7 +415,6 @@ async function fetchCSV(url) {
   }
   throw new Error('Sin conexión: ' + (lastErr?.message || ''));
 }
- 
 function parseIndice(text) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   const hdrs  = parseCSVLine(lines[0]).map(h => h.replace(/"/g,'').trim().toLowerCase());
@@ -373,7 +425,6 @@ function parseIndice(text) {
     return obj;
   }).filter(r => r.nombre || r.obra);
 }
- 
 function parseObraKV(text) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   const kv = {};
@@ -385,18 +436,18 @@ function parseObraKV(text) {
     kv[k] = v;
   });
   return {
-    nombre:       kv['nombre'] || kv['nombre_de_obra'] || 'Obra',
-    presupuesto:  cleanNum(kv['presupuesto'] || '0'),
-    gastoReal:    cleanNum(kv['gasto_real']  || '0'),
-    ultAct:       kv['ultima_actualizacion'] || '',
-    smartsheetId: kv['smartsheet_id'] || ''
+    nombre:      kv['nombre'] || kv['nombre_de_obra'] || 'Obra',
+    presupuesto: cleanNum(kv['presupuesto'] || '0'),
+    gastoReal:   cleanNum(kv['gasto_real']  || '0'),
+    ultAct:      kv['ultima_actualizacion'] || '',
+    smartsheetId:kv['smartsheet_id'] || ''
   };
 }
  
 /* ─── Smartsheet via API propia ─── */
-async function fetchSmartsheet(sheetId) {
-  const url = `${API_BASE}/api/obra?id=${sheetId}`;
-  const res  = await fetch(url);
+async function fetchSmartsheet(sheetId, forceRefresh = false) {
+  const url = `${API_BASE}/api/obra?id=${sheetId}${forceRefresh ? '&nocache=1' : ''}`;
+  const res = await fetch(url);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || 'Error al consultar Smartsheet');
@@ -404,70 +455,55 @@ async function fetchSmartsheet(sheetId) {
   return res.json();
 }
  
-/* ═══════════════════════════════════════════════════════
-   CARGA DIRECTA DESDE SMARTSHEET (sin Google Sheets)
-   ═══════════════════════════════════════════════════════ */
-async function cargarObraDirecta(smId) {
-  smData = await fetchSmartsheet(smId);
- 
-  /* Rellenar el selector con el nombre que devuelve Smartsheet */
+/* ─── Carga directa ─── */
+async function cargarObraDirecta(smId, forceRefresh = false) {
+  smData = await fetchSmartsheet(smId, forceRefresh);
   const sel = document.getElementById('selectorObra');
   sel.innerHTML = '<option>' + (smData.resumen?.nombre || 'Mi Obra') + '</option>';
- 
-  /* Panel económico: si Smartsheet trae presupuesto/gasto lo mostramos,
-     si no, mostramos ceros (se puede completar después con Google Sheets) */
   obraActual = {
-    nombre:      smData.resumen?.nombre   || 'Mi Obra',
+    nombre:      smData.resumen?.nombre      || 'Mi Obra',
     presupuesto: smData.resumen?.presupuesto || 0,
     gastoReal:   smData.resumen?.gastoReal   || 0,
     ultAct:      smData.resumen?.ultAct      || ''
   };
   renderEco(obraActual);
   renderTiempos(smData);
+  renderTaskTree(smData.tareas);
 }
  
-/* ═══════════════════════════════════════════════════════
-   CARGA DE ÍNDICE (modo multi-obra con Google Sheets)
-   ═══════════════════════════════════════════════════════ */
-async function cargarIndice() {
-  /* ── MODO DIRECTO: arranca siempre con la hoja de Smartsheet ── */
+/* ─── Carga índice ─── */
+async function cargarIndice(forceRefresh = false) {
   if (!BASE_SHEET_ID) {
-    await cargarObraDirecta(SMARTSHEET_ID);
+    await cargarObraDirecta(SMARTSHEET_ID, forceRefresh);
     return;
   }
- 
-  /* ── MODO ÍNDICE: Google Sheets como índice de obras ── */
   const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${INDICE_GID}`;
   const text = await fetchCSV(url);
   indiceObras = parseIndice(text);
-  if (!indiceObras.length) throw new Error('El INDICE está vacío.');
- 
+  if (!indiceObras.length) throw new Error('El ÍNDICE está vacío.');
   const sel = document.getElementById('selectorObra');
   sel.innerHTML = '';
   indiceObras.forEach((r, i) => {
     const opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = (r.nombre||r.obra) + (r.estado ? ' · '+r.estado : '');
+    opt.textContent = (r.nombre||r.obra) + (r.estado ? ' · ' + r.estado : '');
     sel.appendChild(opt);
   });
-  await cargarObra(0);
+  await cargarObra(0, forceRefresh);
 }
  
-async function cargarObra(idx) {
+async function cargarObra(idx, forceRefresh = false) {
   const meta = indiceObras[idx];
   if (!meta) return;
- 
-  /* Si es demo */
   if (meta._demo) {
     obraActual = meta._demo.eco;
     smData     = meta._demo.sm;
     renderEco(obraActual);
     renderTiempos(smData);
+    renderTaskTree(smData.tareas);
     return;
   }
- 
-  /* Cargar datos económicos desde Google Sheets */
-  const gid  = meta.gid || '';
+  const gid = meta.gid || '';
   if (gid) {
     const url  = `https://docs.google.com/spreadsheets/d/${BASE_SHEET_ID}/export?format=csv&gid=${gid}`;
     const text = await fetchCSV(url);
@@ -476,28 +512,24 @@ async function cargarObra(idx) {
     obraActual = { nombre: meta.nombre||meta.obra, presupuesto:0, gastoReal:0, ultAct:'', smartsheetId: meta.smartsheet_id||'' };
   }
   renderEco(obraActual);
- 
-  /* Cargar tiempos desde Smartsheet */
   const smId = meta.smartsheet_id || obraActual.smartsheetId || '';
-  if (!smId) {
-    toast('⚠️ Esta obra no tiene smartsheet_id en el INDICE', 5000);
-    return;
-  }
-  smData = await fetchSmartsheet(smId);
+  if (!smId) { showToast('⚠️ Esta obra no tiene smartsheet_id', 5000); return; }
+  smData = await fetchSmartsheet(smId, forceRefresh);
   renderTiempos(smData);
+  renderTaskTree(smData.tareas);
 }
  
 function cambiarObra() {
   const idx = document.getElementById('selectorObra').selectedIndex;
   setLoading(true);
   cargarObra(idx)
-    .catch(e => toast('❌ ' + e.message, 6000))
+    .catch(e => showToast('❌ ' + e.message, 6000))
     .finally(() => setLoading(false));
 }
  
-/* ═══════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════
    RENDER ECONÓMICO
-   ═══════════════════════════════════════════════════════ */
+════════════════════════════════════════════════════ */
 function renderEco(obra) {
   const proy    = obra.presupuesto;
   const real    = obra.gastoReal;
@@ -505,14 +537,13 @@ function renderEco(obra) {
   const desvPct = proy ? ((desv/proy)*100).toFixed(1) : '0.0';
   const neg     = desv > 0;
  
-  document.getElementById('kpiProy').textContent      = fmt(proy);
-  document.getElementById('kpiReal').textContent      = fmt(real);
-  document.getElementById('kpiDesvPct').textContent   = (neg?'+':'') + desvPct + '%';
-  document.getElementById('kpiDesvMonto').textContent = (neg?'+':'-') + fmt(Math.abs(desv));
+  document.getElementById('kpiProy').textContent     = fmt(proy);
+  document.getElementById('kpiReal').textContent     = fmt(real);
+  document.getElementById('kpiDesvPct').textContent  = (neg?'+':'') + desvPct + '%';
+  document.getElementById('kpiDesvMonto').textContent= (neg?'+':'-') + fmt(Math.abs(desv));
   ['chipPct','chipMonto'].forEach(id => {
     document.getElementById(id).className = (neg?'chip-neg':'chip-pos') + ' rounded-xl px-4 py-3 text-center';
   });
- 
   const ultEl = document.getElementById('ultimaActHoja');
   if (obra.ultAct) {
     ultEl.textContent = '📅 Datos al: ' + obra.ultAct;
@@ -526,7 +557,7 @@ function renderEco(obra) {
       labels: ['Presupuesto','Gasto Real'],
       datasets: [{
         data: [proy, real],
-        backgroundColor: ['rgba(99,102,241,0.82)', neg?'rgba(239,68,68,0.82)':'rgba(16,185,129,0.82)'],
+        backgroundColor: ['rgba(79,70,229,0.82)', neg?'rgba(239,68,68,0.82)':'rgba(16,185,129,0.82)'],
         borderRadius: 10, borderSkipped: false, barThickness: 80
       }]
     },
@@ -541,109 +572,70 @@ function renderEco(obra) {
   });
 }
  
-/* ═══════════════════════════════════════════════════════
-   RENDER TIEMPOS desde Smartsheet
-   ═══════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════
+   RENDER TIEMPOS
+════════════════════════════════════════════════════ */
 function renderTiempos(sm) {
   const { resumen, tareas } = sm;
   const today = new Date(); today.setHours(0,0,0,0);
-  
-  /* Obtener configuracion de linea base */
-  const cfg = getConfig();
-  
-  const t0   = parseDate(resumen.fechaInicio);
-  const t1   = parseDate(resumen.fechaFin);
-  
-  /* Usar fechas manuales si estan configuradas, sino las de Smartsheet */
+  const cfg   = getConfig();
+  const t0    = parseDate(resumen.fechaInicio);
+  const t1    = parseDate(resumen.fechaFin);
+ 
   let b0, b1;
   if (cfg.usarManual && cfg.baseStart && cfg.baseFinish) {
     b0 = parseDate(cfg.baseStart);
     b1 = parseDate(cfg.baseFinish);
   } else {
-    b0 = parseDate(resumen.baseStart) || t0;
+    b0 = parseDate(resumen.baseStart)  || t0;
     b1 = parseDate(resumen.baseFinish) || t1;
   }
-  
-  const av   = resumen.avance;
-
+  const av = resumen.avance;
   if (!t0 || !t1) return;
  
-  /* Avance físico */
   document.getElementById('avLbl').textContent = av + '%';
   setTimeout(() => {
-    document.getElementById('progFill').style.width = av + '%';
-    document.getElementById('progFill').textContent = av + '%';
+    document.getElementById('progFill').style.width  = av + '%';
+    document.getElementById('progFill').textContent  = av + '%';
   }, 120);
  
-  /* Sidebar fechas */
   document.getElementById('fInicio').textContent  = fmtFecha(b0);
   document.getElementById('fFinPlan').textContent = fmtFecha(b1);
   document.getElementById('fFinEst').textContent  = fmtFecha(t1);
  
-  const diffD = b1 ? Math.round((t1 - b1) / 86400000) : 0;
-  /* Calcular duracion original de linea base y % de desvio */
-  const duracionBase = b0 && b1 ? Math.round((b1 - b0) / 86400000) : 0;
-  const desvPct = duracionBase > 0 ? ((diffD / duracionBase) * 100).toFixed(1) : 0;
-  
-  const estBox = document.getElementById('fFinEstBox');
-  const dBox   = document.getElementById('desvDiasBox');
-  const pctEl  = document.getElementById('desvPctVal');
-  
+  const diffD       = b1 ? Math.round((t1 - b1) / 86400000) : 0;
+  const durBase     = b0 && b1 ? Math.round((b1 - b0) / 86400000) : 0;
+  const desvPct     = durBase > 0 ? ((diffD / durBase) * 100).toFixed(1) : 0;
+  const estBox      = document.getElementById('fFinEstBox');
+  const dBox        = document.getElementById('desvDiasBox');
+  const pctEl       = document.getElementById('desvPctVal');
+ 
   if (diffD <= 0) {
     estBox.className = 'comp-box comp-est-ok';
     document.getElementById('fFinEstLbl').className = 'text-xs font-semibold text-emerald-600 mb-1';
-    dBox.className   = 'rounded-xl p-4 text-center bg-emerald-50 border border-emerald-100 mt-auto';
-    document.getElementById('desvDiasVal').textContent = diffD === 0 ? '0 dias' : Math.abs(diffD)+' dias';
-    document.getElementById('desvDiasVal').className   = 'text-2xl font-extrabold text-emerald-600';
-    document.getElementById('desvDiasLbl').textContent = diffD === 0 ? 'Sin desvio' : 'Adelantado';
-    pctEl.textContent = diffD === 0 ? '0% desvio' : '-' + Math.abs(desvPct) + '% desvio';
+    dBox.className = 'rounded-xl p-4 text-center bg-emerald-50 border border-emerald-100 mt-auto';
+    document.getElementById('desvDiasVal').textContent = diffD === 0 ? '0 días' : Math.abs(diffD)+' días';
+    document.getElementById('desvDiasVal').className = 'text-2xl font-extrabold text-emerald-600';
+    document.getElementById('desvDiasLbl').textContent = diffD === 0 ? 'Sin desvío' : 'Adelantado';
+    pctEl.textContent = diffD === 0 ? '0% desvío' : '-' + Math.abs(desvPct) + '% desvío';
     pctEl.className = 'text-sm font-bold mt-2 text-emerald-600';
   } else {
     estBox.className = 'comp-box comp-est-bad';
     document.getElementById('fFinEstLbl').className = 'text-xs font-semibold text-rose-500 mb-1';
-    dBox.className   = 'rounded-xl p-4 text-center bg-rose-50 border border-rose-100 mt-auto';
-    document.getElementById('desvDiasVal').textContent = '+' + diffD + ' dias';
-    document.getElementById('desvDiasVal').className   = 'text-2xl font-extrabold text-rose-600';
+    dBox.className = 'rounded-xl p-4 text-center bg-rose-50 border border-rose-100 mt-auto';
+    document.getElementById('desvDiasVal').textContent = '+' + diffD + ' días';
+    document.getElementById('desvDiasVal').className = 'text-2xl font-extrabold text-rose-600';
     document.getElementById('desvDiasLbl').textContent = 'de retraso';
-    pctEl.textContent = '+' + desvPct + '% desvio';
+    pctEl.textContent = '+' + desvPct + '% desvío';
     pctEl.className = 'text-sm font-bold mt-2 text-rose-600';
   }
  
-  /* Próximas tareas (no completadas, ordenadas por fecha de inicio) */
-  const proxEl = document.getElementById('tareasProximas');
-  proxEl.innerHTML = '';
-  const proximas = tareas
-    .filter(t => !t.completada && parseDate(t.inicio) >= today)
-    .sort((a,b) => new Date(a.inicio) - new Date(b.inicio))
-    .slice(0, 5);
-  const atrasadas = tareas
-    .filter(t => !t.completada && parseDate(t.fin) < today)
-    .slice(0, 3);
- 
-  [...atrasadas, ...proximas].slice(0, 6).forEach(t => {
-    const atrasada = !t.completada && parseDate(t.fin) < today;
-    const d = document.createElement('div');
-    d.className = 'flex items-start gap-2';
-    d.innerHTML = `
-      <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;background:${atrasada?'#ef4444':t.completada?'#10b981':'#f59e0b'}"></span>
-      <div style="flex:1;min-width:0">
-        <p style="font-size:11px;font-weight:600;color:${atrasada?'#ef4444':'#1e293b'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</p>
-        <p style="font-size:10px;color:#94a3b8">${fmtCorta(parseDate(t.inicio))} → ${fmtCorta(parseDate(t.fin))} · ${t.pct}%</p>
-      </div>`;
-    proxEl.appendChild(d);
-  });
- 
-  if (!proximas.length && !atrasadas.length) {
-    proxEl.innerHTML = '<p style="font-size:11px;color:#94a3b8">Sin tareas próximas</p>';
-  }
- 
-  /* Dibujar Gantt */
   drawGantt(tareas, t0, t1, b0, b1, today, av);
 }
  
-/* ════════════════════��══════════════════════════════════
-   GANTT SVG
-   ═══════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════
+   GANTT SVG — con bandas de trimestre prolijas
+════════════════════════════════════════════════════ */
 function setVista(v) {
   vistaGantt = v;
   ['total','trimestre','mes'].forEach(id => {
@@ -652,32 +644,29 @@ function setVista(v) {
   if (smData) {
     const { resumen, tareas } = smData;
     const today = new Date(); today.setHours(0,0,0,0);
-    const t0 = parseDate(resumen.fechaInicio);
-    const t1 = parseDate(resumen.fechaFin);
-    const b0 = parseDate(resumen.baseStart) || t0;
-    const b1 = parseDate(resumen.baseFinish) || t1;
-    drawGantt(tareas, t0, t1, b0, b1, today, resumen.avance);
+    drawGantt(tareas, parseDate(resumen.fechaInicio), parseDate(resumen.fechaFin),
+              parseDate(resumen.baseStart)||parseDate(resumen.fechaInicio),
+              parseDate(resumen.baseFinish)||parseDate(resumen.fechaFin),
+              today, resumen.avance);
   }
 }
  
 function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
-  const svg  = document.getElementById('ganttSvg');
-  const W    = svg.parentElement.clientWidth || 600;
+  const svg = document.getElementById('ganttSvg');
+  const W   = Math.max(svg.parentElement.clientWidth || 600, 600);
   svg.setAttribute('width', W);
-
-  /* Si no hay fechas validas, salir */
+ 
   if (!t0 || !t1) {
-    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#666">Sin datos de fechas</text>';
+    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#94a3b8" font-family="DM Sans,sans-serif">Sin datos de fechas</text>';
     return;
   }
-
-  /* Rango visible */
-  let vStart, vEnd;
+ 
   const tMax = (t1 && b1) ? (t1 > b1 ? t1 : b1) : (t1 || b1);
   const tMin = (t0 && b0) ? (t0 < b0 ? t0 : b0) : (t0 || b0);
+  let vStart, vEnd;
   if (vistaGantt === 'total') {
-    vStart = new Date(tMin.getTime() - 86400000*10);
-    vEnd   = new Date(tMax.getTime() + 86400000*10);
+    vStart = new Date(tMin.getTime() - 86400000*14);
+    vEnd   = new Date(tMax.getTime() + 86400000*14);
   } else if (vistaGantt === 'trimestre') {
     vStart = new Date(today.getTime() - 86400000*30);
     vEnd   = new Date(today.getTime() + 86400000*60);
@@ -686,145 +675,169 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     vEnd   = new Date(today.getTime() + 86400000*23);
   }
  
-  const PAD_L = 10, PAD_R = 10;
+  const PAD_L = 12, PAD_R = 12;
   const chartW = W - PAD_L - PAD_R;
   function px(date) {
     if (!date) return PAD_L;
-    const ratio = (date - vStart) / (vEnd - vStart);
-    return PAD_L + Math.round(ratio * chartW);
+    const r = (date - vStart) / (vEnd - vStart);
+    return PAD_L + Math.round(r * chartW);
   }
  
-  /* Dimensiones filas */
-  const Y_AXIS  = 28;
-  const Y_REAL  = 72;
-  const Y_BASE  = 120;
-  const Y_TASKS = 155;
-  const H_SVG   = 185;
+  // Layout vertical
+  const Y_Q_BAND  = 0;   // altura de la banda de quarters
+  const H_Q       = 24;  // altura de la banda Q
+  const Y_MONTHS  = H_Q; // inicio fila meses
+  const H_MONTHS  = 20;
+  const Y_CONTENT = H_Q + H_MONTHS; // inicio contenido
+  const Y_REAL    = Y_CONTENT + 34;
+  const Y_BASE    = Y_CONTENT + 82;
+  const Y_TASKS   = Y_CONTENT + 124;
+  const H_SVG     = Y_TASKS + 30;
+ 
   svg.setAttribute('height', H_SVG);
  
   let html = '';
  
-  /* Fondo zebra por meses */
-  const cur = new Date(vStart.getFullYear(), vStart.getMonth(), 1);
-  let toggle = false;
-  while (cur <= vEnd) {
-    const next = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
-    const x1 = Math.max(px(cur), PAD_L);
-    const x2 = Math.min(px(next), PAD_L+chartW);
-    if (x2 > x1) html += `<rect x="${x1}" y="38" width="${x2-x1}" height="${H_SVG-38}" fill="${toggle?'#f8fafc':'#fff'}"/>`;
-    toggle = !toggle;
-    cur.setMonth(cur.getMonth()+1);
-  }
+  /* ── 1. BANDAS DE QUARTERS ── */
+  const quarters = getQuarterBands(vStart, vEnd);
+  quarters.forEach(({ label, start, end }, qi) => {
+    const x1 = Math.max(px(start), PAD_L);
+    const x2 = Math.min(px(end),   PAD_L + chartW);
+    if (x2 <= x1) return;
+    const QUARTER_COLORS = ['#eef2ff','#f0fdf4','#fff7ed','#fdf2f8'];
+    const col = QUARTER_COLORS[qi % 4];
+    html += `<rect x="${x1}" y="${Y_Q_BAND}" width="${x2-x1}" height="${H_Q}" fill="${col}"/>`;
+    // Separador izquierdo
+    if (x1 > PAD_L)
+      html += `<line x1="${x1}" y1="${Y_Q_BAND}" x2="${x1}" y2="${H_SVG}" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    // Label del quarter centrado
+    const cx = (x1 + x2) / 2;
+    if (x2 - x1 > 28) {
+      html += `<text x="${cx}" y="${Y_Q_BAND + 15}" text-anchor="middle" class="q-band-label" font-size="10" fill="#64748b" font-family="DM Mono,monospace" font-weight="600">${label}</text>`;
+    }
+  });
+  // Borde inferior de la banda Q
+  html += `<line x1="${PAD_L}" y1="${H_Q}" x2="${PAD_L+chartW}" y2="${H_Q}" stroke="#e2e8f0" stroke-width="1"/>`;
  
-  /* Eje temporal */
-  getTimeLabels(vStart, vEnd).forEach(({date, label}) => {
+  /* ── 2. MESES ── */
+  const meses = getMonthLabels(vStart, vEnd);
+  meses.forEach(({ date, label }) => {
     const x = px(date);
     if (x < PAD_L || x > PAD_L+chartW) return;
-    html += `<line x1="${x}" y1="38" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
-    html += `<text x="${x}" y="${Y_AXIS}" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Inter,sans-serif" font-weight="600">${label}</text>`;
+    html += `<line x1="${x}" y1="${Y_MONTHS}" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
+    html += `<text x="${x+5}" y="${Y_MONTHS+13}" font-size="10" fill="#94a3b8" font-family="DM Sans,sans-serif" font-weight="600">${label}</text>`;
   });
  
-  /* Rótulos de filas */
-  html += `<text x="${PAD_L}" y="${Y_REAL-12}" font-size="9" fill="#f97316" font-family="Inter,sans-serif" font-weight="700">AVANCE REAL</text>`;
-  html += `<text x="${PAD_L}" y="${Y_BASE-8}" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">LÍNEA BASE</text>`;
-  html += `<text x="${PAD_L}" y="${Y_TASKS-4}" font-size="9" fill="#64748b" font-family="Inter,sans-serif" font-weight="700">TAREAS</text>`;
+  /* ── 3. FONDO ZEBRA post-header ── */
+  meses.forEach(({ date }, mi) => {
+    const next  = meses[mi+1]?.date || vEnd;
+    const x1    = Math.max(px(date), PAD_L);
+    const x2    = Math.min(px(next), PAD_L+chartW);
+    if (x2 <= x1) return;
+    html += `<rect x="${x1}" y="${Y_CONTENT}" width="${x2-x1}" height="${H_SVG-Y_CONTENT}" fill="${mi%2===0?'#f8fafc':'#fff'}" opacity="0.5"/>`;
+  });
  
-  /* ── BARRA AVANCE REAL ── */
-  const barH  = 22;
-  const xT0   = px(t0);
-  const xT1   = px(t1);
-  const avFrac = avance / 100;
-  const durReal = t1 - t0;
-  const xAvEnd  = px(new Date(t0.getTime() + durReal * avFrac));
+  /* ── 4. ETIQUETAS DE FILAS ── */
+  html += `<text x="${PAD_L}" y="${Y_REAL-12}" font-size="9" fill="#f97316" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">AVANCE REAL</text>`;
+  html += `<text x="${PAD_L}" y="${Y_BASE-10}" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">LÍNEA BASE</text>`;
+  html += `<text x="${PAD_L}" y="${Y_TASKS-5}" font-size="9" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">TAREAS</text>`;
  
-  /* Fondo total real */
-  const rBgX1 = Math.max(xT0, PAD_L);
-  const rBgX2 = Math.min(xT1, PAD_L+chartW);
-  if (rBgX2 > rBgX1) html += `<rect x="${rBgX1}" y="${Y_REAL-barH/2}" width="${rBgX2-rBgX1}" height="${barH}" rx="5" fill="#fed7aa" opacity="0.5"/>`;
+  /* ── 5. BARRA AVANCE REAL ── */
+  const barH    = 22;
+  const xT0     = px(t0);
+  const xT1     = px(t1);
+  const avFrac  = avance / 100;
+  const xAvEnd  = px(new Date(t0.getTime() + (t1-t0) * avFrac));
  
-  /* Porción ejecutada */
-  const avX1 = Math.max(xT0, PAD_L);
-  const avX2 = Math.min(xAvEnd, PAD_L+chartW);
+  const rBgX1 = Math.max(xT0, PAD_L), rBgX2 = Math.min(xT1, PAD_L+chartW);
+  if (rBgX2 > rBgX1)
+    html += `<rect x="${rBgX1}" y="${Y_REAL-barH/2}" width="${rBgX2-rBgX1}" height="${barH}" rx="6" fill="#fed7aa" opacity="0.5"/>`;
+ 
+  const avX1 = Math.max(xT0, PAD_L), avX2 = Math.min(xAvEnd, PAD_L+chartW);
   if (avX2 > avX1) {
-    html += `<rect x="${avX1}" y="${Y_REAL-barH/2}" width="${avX2-avX1}" height="${barH}" rx="5" fill="#f97316"/>`;
-    if (avX2 - avX1 > 40) {
-      html += `<text x="${(avX1+avX2)/2}" y="${Y_REAL+4}" text-anchor="middle" font-size="11" fill="#fff" font-family="Inter,sans-serif" font-weight="800">${avance}%</text>`;
-    }
+    html += `<rect x="${avX1}" y="${Y_REAL-barH/2}" width="${avX2-avX1}" height="${barH}" rx="6" fill="#f97316"/>`;
+    if (avX2-avX1 > 40)
+      html += `<text x="${(avX1+avX2)/2}" y="${Y_REAL+5}" text-anchor="middle" font-size="11" fill="#fff" font-family="DM Sans,sans-serif" font-weight="800">${avance}%</text>`;
   }
- 
-  /* Extensión si hay retraso */
   if (t1 > b1) {
-    const extX1 = Math.max(px(b1), PAD_L);
-    const extX2 = Math.min(xT1, PAD_L+chartW);
+    const extX1 = Math.max(px(b1), PAD_L), extX2 = Math.min(xT1, PAD_L+chartW);
     if (extX2 > extX1) {
-      html += `<rect x="${extX1}" y="${Y_REAL-barH/2}" width="${extX2-extX1}" height="${barH}" rx="5" fill="#fca5a5" opacity="0.6"/>`;
+      html += `<rect x="${extX1}" y="${Y_REAL-barH/2}" width="${extX2-extX1}" height="${barH}" rx="6" fill="#fca5a5" opacity="0.6"/>`;
       const dias = Math.round((t1-b1)/86400000);
-      if (extX2+40 < PAD_L+chartW) {
-        html += `<text x="${extX2+4}" y="${Y_REAL+4}" font-size="9" fill="#ef4444" font-family="Inter,sans-serif" font-weight="700">+${dias}d</text>`;
-      }
+      if (extX2+44 < PAD_L+chartW)
+        html += `<text x="${extX2+5}" y="${Y_REAL+5}" font-size="9" fill="#ef4444" font-family="DM Sans,sans-serif" font-weight="700">+${dias}d</text>`;
     }
   }
  
-  /* ── LÍNEA BASE ── */
-  const lbX1 = Math.max(px(b0), PAD_L);
-  const lbX2 = Math.min(px(b1), PAD_L+chartW);
+  /* ── 6. LÍNEA BASE ── */
+  const lbX1 = Math.max(px(b0), PAD_L), lbX2 = Math.min(px(b1), PAD_L+chartW);
   if (lbX2 > lbX1) {
     html += `<rect x="${lbX1}" y="${Y_BASE-4}" width="${lbX2-lbX1}" height="8" rx="4" fill="#6366f1"/>`;
     html += `<circle cx="${lbX1}" cy="${Y_BASE}" r="5" fill="#6366f1" stroke="#fff" stroke-width="2"/>`;
     html += `<circle cx="${lbX2}" cy="${Y_BASE}" r="5" fill="#6366f1" stroke="#fff" stroke-width="2"/>`;
-    if (px(b0) >= PAD_L) html += `<text x="${lbX1}" y="${Y_BASE+16}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">${fmtCorta(b0)}</text>`;
-    if (px(b1) <= PAD_L+chartW) html += `<text x="${lbX2}" y="${Y_BASE+16}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="Inter,sans-serif" font-weight="700">${fmtCorta(b1)}</text>`;
+    if (px(b0) >= PAD_L)
+      html += `<text x="${lbX1}" y="${Y_BASE+18}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700">${fmtCorta(b0)}</text>`;
+    if (px(b1) <= PAD_L+chartW)
+      html += `<text x="${lbX2}" y="${Y_BASE+18}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700">${fmtCorta(b1)}</text>`;
   }
  
-  /* ── PUNTOS DE TAREAS en eje inferior ── */
-  const tareasFiltradas = tareas.filter(t => !t.esPadre).slice(0, 30);
-  tareasFiltradas.forEach((t, i) => {
-    const td  = parseDate(t.inicio);
-    const tf  = parseDate(t.fin);
+  /* ── 7. PUNTOS DE TAREAS ── */
+  const hojas = tareas.filter(t => !t.esPadre).slice(0, 40);
+  hojas.forEach(t => {
+    const td = parseDate(t.inicio), tf = parseDate(t.fin);
     if (!td || !tf) return;
-    const xm  = px(new Date((td.getTime() + tf.getTime()) / 2));
+    const xm = px(new Date((td.getTime() + tf.getTime()) / 2));
     if (xm < PAD_L || xm > PAD_L+chartW) return;
     const atrasada = !t.completada && tf < today;
     const col = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
-    const lbl = t.nombre.length > 20 ? t.nombre.slice(0,18)+'…' : t.nombre;
     const tip = `${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
     html += `<circle class="hito-dot" cx="${xm}" cy="${Y_TASKS}" r="5" fill="${col}" stroke="#fff" stroke-width="2"
-      onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"/>`;
-    html += `<line x1="${xm}" y1="${Y_TASKS-5}" x2="${xm}" y2="${Y_BASE+14}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.4"/>`;
+              onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"/>`;
+    html += `<line x1="${xm}" y1="${Y_TASKS-5}" x2="${xm}" y2="${Y_BASE+16}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.35"/>`;
   });
  
-  /* ── LÍNEA HOY ── */
+  /* ── 8. LÍNEA HOY ── */
   const xH = px(today);
   if (xH >= PAD_L && xH <= PAD_L+chartW) {
-    html += `<line x1="${xH}" y1="38" x2="${xH}" y2="${H_SVG-5}" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>`;
-    html += `<rect x="${xH-18}" y="38" width="36" height="14" rx="4" fill="#ef4444"/>`;
-    html += `<text x="${xH}" y="48" text-anchor="middle" font-size="9" fill="#fff" font-family="Inter,sans-serif" font-weight="800">HOY</text>`;
+    html += `<line x1="${xH}" y1="${H_Q}" x2="${xH}" y2="${H_SVG-4}" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>`;
+    html += `<rect x="${xH-18}" y="${H_Q+2}" width="36" height="14" rx="4" fill="#ef4444"/>`;
+    html += `<text x="${xH}" y="${H_Q+12}" text-anchor="middle" font-size="9" fill="#fff" font-family="DM Sans,sans-serif" font-weight="800">HOY</text>`;
   }
  
   svg.innerHTML = html;
 }
  
-function getTimeLabels(start, end) {
+/* ─── Quarter bands helper ─── */
+function getQuarterBands(start, end) {
+  const bands = [];
+  const cur = new Date(start.getFullYear(), Math.floor(start.getMonth()/3)*3, 1);
+  while (cur <= end) {
+    const qStart = new Date(cur);
+    const qEnd   = new Date(cur.getFullYear(), cur.getMonth()+3, 1);
+    const q      = Math.floor(cur.getMonth()/3)+1;
+    bands.push({ label: `Q${q} ${cur.getFullYear()}`, start: qStart, end: qEnd });
+    cur.setMonth(cur.getMonth()+3);
+  }
+  return bands;
+}
+ 
+/* ─── Month labels ─── */
+function getMonthLabels(start, end) {
   const days = (end - start) / 86400000;
   const labels = [];
   if (days <= 45) {
+    // Semanas
     const cur = new Date(start);
     cur.setDate(cur.getDate() + (1 - cur.getDay() + 7) % 7);
     while (cur <= end) {
       labels.push({ date: new Date(cur), label: fmtCorta(cur) });
       cur.setDate(cur.getDate()+7);
     }
-  } else if (days <= 200) {
+  } else {
     const cur = new Date(start.getFullYear(), start.getMonth(), 1);
     while (cur <= end) {
-      labels.push({ date: new Date(cur), label: cur.toLocaleDateString('es-AR',{month:'short',year:'2-digit'}) });
+      labels.push({ date: new Date(cur), label: cur.toLocaleDateString('es-AR',{month:'short'}) });
       cur.setMonth(cur.getMonth()+1);
-    }
-  } else {
-    const cur = new Date(start.getFullYear(), Math.floor(start.getMonth()/3)*3, 1);
-    while (cur <= end) {
-      labels.push({ date: new Date(cur), label: `Q${Math.floor(cur.getMonth()/3)+1} ${cur.getFullYear().toString().slice(2)}` });
-      cur.setMonth(cur.getMonth()+3);
     }
   }
   return labels;
@@ -837,28 +850,184 @@ function showTip(e, text) {
 }
 function hideTip() { document.getElementById('ganttTooltip').style.display='none'; }
  
-/* ─── Demo sin credenciales ─── */
+/* ════════════════════════════════════════════════════
+   PANEL DE TAREAS — árbol padre/hija desplegable
+════════════════════════════════════════════════════ */
+function setFiltroTareas(f) {
+  filtroTareas = f;
+  ['todas','pendientes','atrasadas','proximas'].forEach(id => {
+    document.getElementById('ftb'+id.charAt(0).toUpperCase()+id.slice(1))
+      ?.classList.toggle('active', id === f);
+  });
+  if (smData) renderTaskTree(smData.tareas);
+}
+ 
+function renderTaskTree(tareas) {
+  const container = document.getElementById('taskTree');
+  const today     = new Date(); today.setHours(0,0,0,0);
+  container.innerHTML = '';
+ 
+  // Construir mapa id→tarea y lista de padres
+  const byId   = {};
+  tareas.forEach(t => { byId[t.id] = t; });
+ 
+  // Nivel 1 o sin padre → son raíces
+  const raices = tareas.filter(t => !t.parentId || !byId[t.parentId]);
+  const hijas  = {};
+  tareas.forEach(t => {
+    if (t.parentId && byId[t.parentId]) {
+      if (!hijas[t.parentId]) hijas[t.parentId] = [];
+      hijas[t.parentId].push(t);
+    }
+  });
+ 
+  // Función para decidir si una tarea pasa el filtro
+  function pasaFiltro(t) {
+    const tf  = parseDate(t.fin);
+    const ti  = parseDate(t.inicio);
+    if (filtroTareas === 'todas')      return true;
+    if (filtroTareas === 'pendientes') return !t.completada;
+    if (filtroTareas === 'atrasadas')  return !t.completada && tf && tf < today;
+    if (filtroTareas === 'proximas')   return !t.completada && ti && diasHasta(ti) <= 30 && diasHasta(ti) >= -7;
+    return true;
+  }
+ 
+  // Renderizar una tarea hoja
+  function renderHija(t) {
+    const tf       = parseDate(t.fin);
+    const ti       = parseDate(t.inicio);
+    const atrasada = !t.completada && tf && tf < today;
+    const estado   = t.completada ? 'done' : atrasada ? 'err' : 'warn';
+    const badgeText= t.completada ? 'Completa' : atrasada ? 'Atrasada' : 'En curso';
+ 
+    const d = document.createElement('div');
+    d.className = 'flex items-center gap-3 px-3 py-2 rounded-lg ml-6 hover:bg-gray-50';
+    d.innerHTML = `
+      <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${t.completada?'#10b981':atrasada?'#ef4444':'#f59e0b'}"></span>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:12px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</p>
+        <p style="font-size:10px;color:#94a3b8">${fmtCorta(ti)} → ${fmtCorta(tf)}</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <div style="width:60px;background:#e2e8f0;border-radius:99px;height:5px;overflow:hidden">
+          <div style="width:${t.pct}%;height:100%;background:${t.completada?'#10b981':atrasada?'#ef4444':'#f59e0b'};border-radius:99px"></div>
+        </div>
+        <span style="font-size:10px;font-weight:700;color:#64748b;width:30px;text-align:right">${t.pct}%</span>
+        <span class="badge badge-${estado}">${badgeText}</span>
+      </div>`;
+    return d;
+  }
+ 
+  // Renderizar un padre con sus hijas
+  function renderPadre(t) {
+    const hh    = hijas[t.id] || [];
+    const tf    = parseDate(t.fin);
+    const ti    = parseDate(t.inicio);
+    const atrasada = !t.completada && tf && tf < today;
+ 
+    // Decidir si este padre debe mostrarse según filtro
+    const hijasPasan = hh.filter(pasaFiltro);
+    const padrePasa  = pasaFiltro(t);
+    if (!padrePasa && hijasPasan.length === 0) return null;
+ 
+    const wrap  = document.createElement('div');
+    wrap.className = 'mb-1';
+ 
+    const row = document.createElement('div');
+    row.className = 'task-row padre flex items-center gap-3 px-3 py-2.5';
+    const tieneHijas = hh.length > 0;
+ 
+    row.innerHTML = `
+      <span style="font-size:14px;transition:transform .2s;display:inline-block" class="chevron">${tieneHijas?'▶':' '}</span>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:13px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</p>
+        <p style="font-size:10px;color:#64748b">${fmtCorta(ti)} → ${fmtCorta(tf)} · ${hh.length} subtareas · ${t.pct}% completado</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <div style="width:80px;background:#e2e8f0;border-radius:99px;height:6px;overflow:hidden">
+          <div style="width:${t.pct}%;height:100%;background:#6366f1;border-radius:99px"></div>
+        </div>
+        <span style="font-size:11px;font-weight:700;color:#6366f1;width:34px;text-align:right">${t.pct}%</span>
+        ${atrasada ? '<span class="badge badge-err">Atrasada</span>' : t.completada ? '<span class="badge badge-done">Completa</span>' : ''}
+      </div>`;
+ 
+    const children = document.createElement('div');
+    children.className = 'task-children';
+ 
+    if (tieneHijas) {
+      (filtroTareas !== 'todas' ? hijasPasan : hh).forEach(h => {
+        children.appendChild(renderHija(h));
+      });
+      row.addEventListener('click', () => {
+        const open = children.classList.toggle('open');
+        row.querySelector('.chevron').style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+      });
+    }
+ 
+    wrap.appendChild(row);
+    wrap.appendChild(children);
+    return wrap;
+  }
+ 
+  // También mostrar tareas sin padre que no son padre
+  const tareasHuerfanas = tareas.filter(t => !t.esPadre && (!t.parentId || !byId[t.parentId]) && pasaFiltro(t));
+ 
+  raices.forEach(t => {
+    if (t.esPadre || hijas[t.id]?.length > 0) {
+      const el = renderPadre(t);
+      if (el) container.appendChild(el);
+    }
+  });
+ 
+  tareasHuerfanas.forEach(t => {
+    if (!raices.find(r => r.id === t.id)) {
+      container.appendChild(renderHija(t));
+    }
+  });
+ 
+  if (!container.children.length) {
+    container.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">No hay tareas para el filtro seleccionado.</p>';
+  }
+}
+ 
+/* ════════════════════════════════════════════════════
+   DEMO DATA
+════════════════════════════════════════════════════ */
 function cargarDemo() {
   const today = new Date(); today.setHours(0,0,0,0);
   const ds = d => { const x = new Date(today); x.setDate(x.getDate()+d); return x.toISOString().slice(0,10); };
  
-  const demos = [
-    {
-      nombre: 'Edificio Residencial Norte', estado: 'En curso',
-      eco: { nombre:'Edificio Residencial Norte', presupuesto:18500000, gastoReal:14200000, ultAct:'10/05/2025' },
-      sm: {
-        resumen: { nombre:'Edificio Residencial Norte', avance:72, fechaInicio:ds(-180), fechaFin:ds(110), baseStart:ds(-180), baseFinish:ds(90) },
-        tareas: [
-          { id:1, nivel:2, nombre:'Cimientos',     inicio:ds(-180), fin:ds(-150), pct:100, baseStart:ds(-180), baseFinish:ds(-150), completada:true,  esPadre:false },
-          { id:2, nivel:2, nombre:'Estructura N1', inicio:ds(-149), fin:ds(-90),  pct:100, baseStart:ds(-149), baseFinish:ds(-90),  completada:true,  esPadre:false },
-          { id:3, nivel:2, nombre:'Estructura N2', inicio:ds(-89),  fin:ds(-30),  pct:100, baseStart:ds(-89),  baseFinish:ds(-30),  completada:true,  esPadre:false },
-          { id:4, nivel:2, nombre:'Mampostería',   inicio:ds(-29),  fin:ds(20),   pct:60,  baseStart:ds(-29),  baseFinish:ds(10),   completada:false, esPadre:false },
-          { id:5, nivel:2, nombre:'Instalaciones', inicio:ds(21),   fin:ds(70),   pct:0,   baseStart:ds(11),   baseFinish:ds(60),   completada:false, esPadre:false },
-          { id:6, nivel:2, nombre:'Terminaciones', inicio:ds(71),   fin:ds(110),  pct:0,   baseStart:ds(61),   baseFinish:ds(90),   completada:false, esPadre:false },
-        ]
-      }
+  const tareasPadre1 = { id: 100, parentId: null, nivel:1, nombre:'Estructura', inicio:ds(-180), fin:ds(-50), pct:100, baseStart:ds(-180), baseFinish:ds(-60), completada:true, esPadre:true, duracionDias:130 };
+  const tareasPadre2 = { id: 200, parentId: null, nivel:1, nombre:'Mampostería', inicio:ds(-49), fin:ds(30), pct:60,  baseStart:ds(-49),   baseFinish:ds(10),  completada:false, esPadre:true, duracionDias:79 };
+  const tareasPadre3 = { id: 300, parentId: null, nivel:1, nombre:'Instalaciones', inicio:ds(31), fin:ds(100), pct:0, baseStart:ds(11), baseFinish:ds(80), completada:false, esPadre:true, duracionDias:69 };
+  const tareasPadre4 = { id: 400, parentId: null, nivel:1, nombre:'Terminaciones', inicio:ds(101), fin:ds(150), pct:0, baseStart:ds(81), baseFinish:ds(130), completada:false, esPadre:true, duracionDias:49 };
+ 
+  const demos = [{
+    nombre: 'Edificio Residencial Norte', estado: 'En curso',
+    eco: { nombre:'Edificio Residencial Norte', presupuesto:18500000, gastoReal:14200000, ultAct:'10/05/2025' },
+    sm: {
+      resumen: { nombre:'Edificio Residencial Norte', avance:62, fechaInicio:ds(-180), fechaFin:ds(150), baseStart:ds(-180), baseFinish:ds(130), totalTareas:18, completadas:8 },
+      tareas: [
+        tareasPadre1,
+        { id:101, parentId:100, nivel:2, nombre:'Cimientos',         inicio:ds(-180), fin:ds(-150), pct:100, baseStart:ds(-180), baseFinish:ds(-150), completada:true,  esPadre:false, duracionDias:30 },
+        { id:102, parentId:100, nivel:2, nombre:'Estructura nivel 1', inicio:ds(-149), fin:ds(-100), pct:100, baseStart:ds(-149), baseFinish:ds(-110), completada:true,  esPadre:false, duracionDias:49 },
+        { id:103, parentId:100, nivel:2, nombre:'Estructura nivel 2', inicio:ds(-99),  fin:ds(-60),  pct:100, baseStart:ds(-99),  baseFinish:ds(-70),  completada:true,  esPadre:false, duracionDias:39 },
+        { id:104, parentId:100, nivel:2, nombre:'Losa cubierta',      inicio:ds(-59),  fin:ds(-50),  pct:100, baseStart:ds(-59),  baseFinish:ds(-55),  completada:true,  esPadre:false, duracionDias:9  },
+        tareasPadre2,
+        { id:201, parentId:200, nivel:2, nombre:'Mampostería PB',     inicio:ds(-49), fin:ds(-20), pct:100, baseStart:ds(-49), baseFinish:ds(-25), completada:true,  esPadre:false, duracionDias:29 },
+        { id:202, parentId:200, nivel:2, nombre:'Mampostería P1',     inicio:ds(-19), fin:ds(10),  pct:70,  baseStart:ds(-19), baseFinish:ds(5),   completada:false, esPadre:false, duracionDias:29 },
+        { id:203, parentId:200, nivel:2, nombre:'Mampostería P2',     inicio:ds(11),  fin:ds(30),  pct:0,   baseStart:ds(6),   baseFinish:ds(10),  completada:false, esPadre:false, duracionDias:19 },
+        tareasPadre3,
+        { id:301, parentId:300, nivel:2, nombre:'Inst. eléctricas',   inicio:ds(31),  fin:ds(60),  pct:0, baseStart:ds(11), baseFinish:ds(40), completada:false, esPadre:false, duracionDias:29 },
+        { id:302, parentId:300, nivel:2, nombre:'Inst. sanitarias',   inicio:ds(31),  fin:ds(70),  pct:0, baseStart:ds(11), baseFinish:ds(50), completada:false, esPadre:false, duracionDias:39 },
+        { id:303, parentId:300, nivel:2, nombre:'Inst. gas',          inicio:ds(61),  fin:ds(100), pct:0, baseStart:ds(41), baseFinish:ds(80), completada:false, esPadre:false, duracionDias:39 },
+        tareasPadre4,
+        { id:401, parentId:400, nivel:2, nombre:'Revoques',           inicio:ds(101), fin:ds(120), pct:0, baseStart:ds(81),  baseFinish:ds(100), completada:false, esPadre:false, duracionDias:19 },
+        { id:402, parentId:400, nivel:2, nombre:'Pintura',            inicio:ds(121), fin:ds(135), pct:0, baseStart:ds(101), baseFinish:ds(115), completada:false, esPadre:false, duracionDias:14 },
+        { id:403, parentId:400, nivel:2, nombre:'Pisos y revestimientos',inicio:ds(136),fin:ds(150),pct:0, baseStart:ds(116), baseFinish:ds(130), completada:false, esPadre:false, duracionDias:14 },
+      ]
     }
-  ];
+  }];
  
   indiceObras = demos.map(d => ({ nombre:d.nombre, estado:d.estado, _demo:d }));
   const sel = document.getElementById('selectorObra');
@@ -868,50 +1037,49 @@ function cargarDemo() {
     opt.value = i; opt.textContent = r.nombre + ' · ' + r.estado;
     sel.appendChild(opt);
   });
- 
   obraActual = demos[0].eco;
   smData     = demos[0].sm;
   renderEco(obraActual);
   renderTiempos(smData);
-  toast('🛠️ No se pudo conectar con Smartsheet — mostrando datos de demo', 6000);
+  renderTaskTree(smData.tareas);
+  showToast('🛠️ Modo demo — conectá Smartsheet para datos reales', 6000);
 }
  
-/* ─── Loading state ─── */
+/* ─── UI helpers ─── */
 function setLoading(on) {
   document.getElementById('loadingBar').classList.toggle('hidden', !on);
   document.getElementById('btnRefresh').disabled = on;
   document.getElementById('refreshIcon').innerHTML = on ? '<span class="spin"></span>' : '🔄';
 }
- 
-/* ─── Toast ─── */
-function toast(msg, dur=3000) {
+function showToast(msg, dur=3000) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), dur);
 }
  
 /* ─── Refrescar ─── */
-async function refrescar() {
+async function refrescar(forceRefresh = false) {
   setLoading(true);
   document.getElementById('errorBox').classList.add('hidden');
   try {
-    await cargarIndice();
+    await cargarIndice(forceRefresh);
     document.getElementById('mainContent').classList.replace('opacity-0','opacity-100');
     document.getElementById('ultimaAct').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-AR');
-    toast('✅ Datos cargados correctamente');
+    showToast(forceRefresh ? '✅ Datos frescos desde Smartsheet' : '✅ Datos cargados');
   } catch(e) {
     document.getElementById('errorBox').classList.remove('hidden');
     document.getElementById('errorMsg').textContent = e.message;
-    toast('❌ ' + e.message, 8000);
+    showToast('❌ ' + e.message, 8000);
     cargarDemo();
     document.getElementById('mainContent').classList.replace('opacity-0','opacity-100');
   } finally { setLoading(false); }
 }
  
+/* ─── Init ─── */
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hdrFecha').textContent =
     new Date().toLocaleDateString('es-AR', {day:'2-digit',month:'long',year:'numeric'});
-  refrescar();
+  refrescar(false);
 });
  
 window.addEventListener('resize', () => {
