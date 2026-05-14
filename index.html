@@ -25,36 +25,36 @@
   }
   * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); }
- 
+
   .card { background: var(--surface); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); }
- 
+
   /* chips */
   .chip-pos { background: #ecfdf5; border: 1.5px solid #6ee7b7; color: #065f46; }
   .chip-neg { background: #fff1f2; border: 1.5px solid #fda4af; color: #9f1239; }
- 
+
   /* select */
   .sel { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .75rem center; padding-right: 2.25rem; }
- 
+
   /* toast */
   #toast { position: fixed; bottom: 24px; right: 24px; z-index: 200; background: #1e293b; color: #fff; padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all .3s; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
   #toast.show { transform: translateY(0); opacity: 1; }
- 
+
   /* spinner */
   .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
- 
+
   /* progress bar */
   .prog-track { background: #e2e8f0; border-radius: 99px; height: 28px; overflow: hidden; }
   .prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f97316, #fb923c); width: 0%; transition: width 1.2s cubic-bezier(.4,0,.2,1); display: flex; align-items: center; padding-left: 14px; font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; }
- 
+
   /* gantt toggle */
   .gantt-toggle-btn { padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--border); background: #fff; color: var(--muted); cursor: pointer; transition: all .2s; }
   .gantt-toggle-btn.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
- 
+
   /* gantt scroll */
   #ganttWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
   #ganttSvg { display: block; }
- 
+
   /* task tree */
   .task-row { border-radius: 10px; transition: background .15s; cursor: pointer; }
   .task-row:hover { background: #f8fafc; }
@@ -67,32 +67,32 @@
   .badge-warn { background: #fef9c3; color: #92400e; }
   .badge-err { background: #fee2e2; color: #991b1b; }
   .badge-done { background: #e0e7ff; color: #3730a3; }
- 
+
   /* quarter bands */
   .q-band-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .05em; }
- 
+
   /* desvio box */
   .comp-box { border-radius: 10px; padding: 12px 14px; border-left: 4px solid; }
   .comp-plan { border-color: var(--indigo); background: #eef2ff; }
   .comp-est-ok { border-color: var(--green); background: #ecfdf5; }
   .comp-est-bad { border-color: var(--red); background: #fff1f2; }
- 
+
   /* config modal */
   #configModal { backdrop-filter: blur(4px); }
- 
+
   /* loading bar */
   #loadingBar { height: 3px; background: linear-gradient(90deg, var(--indigo), var(--orange)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
   @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
- 
+
   /* hito dot */
   .hito-dot { cursor: pointer; }
- 
+
   /* section headers */
   .section-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 </style>
 </head>
 <body class="min-h-screen">
- 
+
 <!-- HEADER -->
 <header class="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
   <div class="max-w-6xl mx-auto px-6 py-3 flex flex-wrap items-center gap-3 justify-between">
@@ -121,7 +121,7 @@
     </div>
   </div>
 </header>
- 
+
 <!-- MODAL CONFIGURACION -->
 <div id="configModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
   <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
@@ -132,9 +132,14 @@
       </button>
     </div>
     <div class="space-y-4">
+
+      <!-- Nombre de la obra activa -->
+      <div id="cfgObraNombre" class="hidden"></div>
+      <div id="cfgGuardadoInd" class="text-xs text-gray-400"></div>
+
       <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
         <p class="text-xs font-semibold text-blue-700 mb-1">Línea Base (Revisión 0)</p>
-        <p class="text-xs text-blue-600">Fechas originales del cronograma planificado</p>
+        <p class="text-xs text-blue-600">Fechas originales del cronograma. Se guarda individualmente por obra y persiste entre sesiones.</p>
       </div>
       <div>
         <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Inicio Línea Base</label>
@@ -144,40 +149,39 @@
         <label class="block text-xs font-semibold text-gray-600 mb-1">Fecha Fin Línea Base</label>
         <input type="date" id="cfgBaseFinish" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
       </div>
-      <hr class="my-4">
+      <hr class="my-1">
       <div class="flex items-center gap-2">
         <input type="checkbox" id="cfgUsarManual" class="w-4 h-4 text-indigo-600 rounded">
         <label for="cfgUsarManual" class="text-sm text-gray-700">Usar fechas manuales en vez de Smartsheet</label>
       </div>
-      <details class="mt-4">
+      <details class="mt-2">
         <summary class="text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700">Cómo se calculan las métricas</summary>
         <div class="mt-3 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 space-y-2">
-          <p><strong>Desvío en días:</strong> Diferencia entre Fecha Fin Estimada y Fecha Fin de Línea Base.</p>
-          <p class="pl-3 border-l-2 border-gray-300">Fórmula: Fecha Fin Real − Fecha Fin Base</p>
-          <p><strong>Desvío en %:</strong> Porcentaje del desvío respecto a la duración original.</p>
-          <p class="pl-3 border-l-2 border-gray-300">Fórmula: (Días desvío / Duración Base) × 100</p>
-          <p><strong>Avance físico:</strong> Promedio ponderado por duración de tareas hoja (sin doble conteo de padres).</p>
+          <p><strong>Desvío en días:</strong> Fecha Fin Real − Fecha Fin Base</p>
+          <p><strong>Desvío en %:</strong> (Días desvío / Duración Base) × 100</p>
+          <p><strong>Avance físico:</strong> Promedio ponderado por duración, solo tareas hoja.</p>
         </div>
       </details>
     </div>
-    <div class="flex gap-3 mt-6">
+    <div class="flex gap-2 mt-6">
+      <button onclick="borrarConfigObra()" class="px-3 py-2 border border-rose-200 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition-colors" title="Borrar línea base de esta obra">🗑️</button>
       <button onclick="cerrarConfig()" class="flex-1 px-4 py-2 border border-gray-300 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50">Cancelar</button>
       <button onclick="guardarConfig()" class="flex-1 px-4 py-2 bg-indigo-600 rounded-xl text-sm font-semibold text-white hover:bg-indigo-700">Guardar</button>
     </div>
   </div>
 </div>
- 
+
 <div id="loadingBar" class="h-1 hidden"></div>
- 
+
 <div id="errorBox" class="hidden max-w-6xl mx-auto mt-6 px-6">
   <div class="bg-rose-50 border border-rose-200 rounded-2xl p-5">
     <p class="font-bold text-sm text-rose-700 mb-1">⚠️ Error de conexión</p>
     <p id="errorMsg" class="text-xs text-rose-500"></p>
   </div>
 </div>
- 
+
 <main id="mainContent" class="max-w-6xl mx-auto px-6 py-8 space-y-8 opacity-0 transition-opacity duration-500">
- 
+
   <!-- ══ PANEL ECONÓMICO ══ -->
   <section>
     <div class="flex items-center gap-3 mb-5">
@@ -218,7 +222,7 @@
       </div>
     </div>
   </section>
- 
+
   <!-- ══ PANEL DE TIEMPOS / GANTT ══ -->
   <section>
     <div class="flex items-center gap-3 mb-5">
@@ -230,7 +234,7 @@
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
       <div class="card p-6 lg:col-span-2 space-y-5">
- 
+
         <!-- Avance físico -->
         <div>
           <div class="flex justify-between items-center mb-2">
@@ -239,7 +243,7 @@
           </div>
           <div class="prog-track"><div id="progFill" class="prog-fill">0%</div></div>
         </div>
- 
+
         <!-- Toggle vista -->
         <div class="flex items-center gap-2 flex-wrap">
           <span class="text-xs font-semibold text-gray-400 uppercase mr-1">Vista:</span>
@@ -247,14 +251,14 @@
           <button class="gantt-toggle-btn" onclick="setVista('trimestre')" id="btn-trimestre">Trimestre</button>
           <button class="gantt-toggle-btn" onclick="setVista('mes')" id="btn-mes">Mes</button>
         </div>
- 
+
         <!-- SVG Gantt -->
         <div id="ganttWrap">
           <svg id="ganttSvg" height="200" role="img" aria-label="Gantt de avance de obra">
             <title>Gantt de avance de obra</title>
           </svg>
         </div>
- 
+
         <!-- Leyenda -->
         <div class="flex flex-wrap gap-5 pt-1 border-t border-gray-100">
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:28px;height:12px;background:#f97316;border-radius:3px"></span>Avance real</span>
@@ -265,7 +269,7 @@
           <span class="flex items-center gap-2 text-xs text-gray-500"><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:50%"></span>Atrasada</span>
         </div>
       </div>
- 
+
       <!-- Sidebar tiempos -->
       <div class="card p-6 flex flex-col gap-3">
         <p class="text-xs font-semibold text-gray-400 uppercase">Proyección de Cierre</p>
@@ -289,7 +293,7 @@
       </div>
     </div>
   </section>
- 
+
   <!-- ══ PANEL DE TAREAS ══ -->
   <section>
     <div class="flex items-center justify-between mb-5">
@@ -300,22 +304,23 @@
           <p class="text-xs text-gray-400">Clic en una tarea padre para ver sus subtareas</p>
         </div>
       </div>
-      <div class="flex gap-2">
-        <button onclick="setFiltroTareas('todas')" id="ftbTodas" class="gantt-toggle-btn active text-xs">Todas</button>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="setFiltroTareas('todas')" id="ftbTodas" class="gantt-toggle-btn text-xs">Todas</button>
         <button onclick="setFiltroTareas('pendientes')" id="ftbPend" class="gantt-toggle-btn text-xs">Pendientes</button>
         <button onclick="setFiltroTareas('atrasadas')" id="ftbAtr" class="gantt-toggle-btn text-xs">Atrasadas</button>
         <button onclick="setFiltroTareas('proximas')" id="ftbProx" class="gantt-toggle-btn text-xs">Próximas 30d</button>
+        <button onclick="setFiltroTareas('criticas')" id="ftbCrit" class="gantt-toggle-btn active text-xs" style="background:#dc2626;border-color:#dc2626;color:#fff">🔴 Críticas</button>
       </div>
     </div>
     <div id="taskTree" class="card p-5 space-y-1.5"></div>
   </section>
- 
+
   <p id="ultimaAct" class="text-center text-xs text-gray-300 pb-4"></p>
 </main>
- 
+
 <div id="toast"></div>
 <div id="ganttTooltip" style="position:fixed;display:none;background:#1e293b;color:#fff;padding:7px 13px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3)"></div>
- 
+
 <script>
 /* ═══════════════════════════════════════════════════════
    CONFIGURACIÓN
@@ -324,36 +329,67 @@ const BASE_SHEET_ID  = '';
 const INDICE_GID     = '0';
 const API_BASE       = '';
 const SMARTSHEET_ID  = '5815789760237444';
- 
+
 const PROXIES = [
   u => u,
   u => 'https://corsproxy.io/?' + encodeURIComponent(u),
   u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)
 ];
- 
+
 let indiceObras  = [];
 let obraActual   = null;
 let smData       = null;
 let chart        = null;
 let vistaGantt   = 'total';
-let filtroTareas = 'todas';
- 
+let filtroTareas = 'criticas';
+
 const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString('es-AR');
- 
-/* ─── Config línea base ─── */
-function getConfig() {
-  const s = localStorage.getItem('tableroConfig');
+
+/* ─── Config línea base POR OBRA ─── */
+let obraIdActual = '';   // se setea cuando carga la obra
+
+function getConfigKey(id) { return 'tableroConfig_' + (id || 'default'); }
+
+function getConfig(id) {
+  const key = getConfigKey(id || obraIdActual);
+  const s   = localStorage.getItem(key);
   return s ? JSON.parse(s) : { usarManual: false, baseStart: null, baseFinish: null };
 }
-function saveConfig(cfg) { localStorage.setItem('tableroConfig', JSON.stringify(cfg)); }
+function saveConfig(cfg, id) {
+  localStorage.setItem(getConfigKey(id || obraIdActual), JSON.stringify(cfg));
+}
+
 function abrirConfig() {
   const cfg = getConfig();
   document.getElementById('cfgBaseStart').value    = cfg.baseStart  || '';
   document.getElementById('cfgBaseFinish').value   = cfg.baseFinish || '';
   document.getElementById('cfgUsarManual').checked = cfg.usarManual || false;
+
+  // Mostrar nombre de la obra actual en el modal
+  const nomEl = document.getElementById('cfgObraNombre');
+  if (obraActual?.nombre) {
+    nomEl.textContent = '📐 Obra: ' + obraActual.nombre;
+    nomEl.className   = 'text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-xl';
+  } else {
+    nomEl.textContent = '';
+    nomEl.className   = 'hidden';
+  }
+
+  // Indicador si ya tiene config guardada
+  const indEl = document.getElementById('cfgGuardadoInd');
+  if (cfg.baseStart && cfg.baseFinish) {
+    indEl.textContent = '✅ Línea base guardada para esta obra';
+    indEl.className   = 'text-xs text-emerald-600 font-semibold';
+  } else {
+    indEl.textContent = '⚪ Sin línea base manual configurada';
+    indEl.className   = 'text-xs text-gray-400';
+  }
+
   document.getElementById('configModal').classList.remove('hidden');
 }
+
 function cerrarConfig() { document.getElementById('configModal').classList.add('hidden'); }
+
 function guardarConfig() {
   const cfg = {
     baseStart:   document.getElementById('cfgBaseStart').value  || null,
@@ -362,10 +398,18 @@ function guardarConfig() {
   };
   saveConfig(cfg);
   cerrarConfig();
-  showToast('Configuración guardada');
+  showToast('✅ Línea base guardada para "' + (obraActual?.nombre || 'esta obra') + '"');
   if (smData) renderTiempos(smData);
 }
- 
+
+function borrarConfigObra() {
+  if (!confirm('¿Borrar la línea base guardada para esta obra?')) return;
+  localStorage.removeItem(getConfigKey());
+  cerrarConfig();
+  showToast('🗑️ Línea base borrada');
+  if (smData) renderTiempos(smData);
+}
+
 /* ─── Helpers ─── */
 function cleanNum(s) {
   if (!s && s !== 0) return 0;
@@ -397,7 +441,7 @@ function diasHasta(date) {
   const today = new Date(); today.setHours(0,0,0,0);
   return Math.round((date - today) / 86400000);
 }
- 
+
 /* ─── CSV fetch (modo Google Sheets) ─── */
 async function fetchCSV(url) {
   let lastErr;
@@ -443,7 +487,7 @@ function parseObraKV(text) {
     smartsheetId:kv['smartsheet_id'] || ''
   };
 }
- 
+
 /* ─── Smartsheet via API propia ─── */
 async function fetchSmartsheet(sheetId, forceRefresh = false) {
   const url = `${API_BASE}/api/obra?id=${sheetId}${forceRefresh ? '&nocache=1' : ''}`;
@@ -454,10 +498,11 @@ async function fetchSmartsheet(sheetId, forceRefresh = false) {
   }
   return res.json();
 }
- 
+
 /* ─── Carga directa ─── */
 async function cargarObraDirecta(smId, forceRefresh = false) {
   smData = await fetchSmartsheet(smId, forceRefresh);
+  obraIdActual = smId;   // ← key de config para esta obra
   const sel = document.getElementById('selectorObra');
   sel.innerHTML = '<option>' + (smData.resumen?.nombre || 'Mi Obra') + '</option>';
   obraActual = {
@@ -470,7 +515,7 @@ async function cargarObraDirecta(smId, forceRefresh = false) {
   renderTiempos(smData);
   renderTaskTree(smData.tareas);
 }
- 
+
 /* ─── Carga índice ─── */
 async function cargarIndice(forceRefresh = false) {
   if (!BASE_SHEET_ID) {
@@ -491,13 +536,14 @@ async function cargarIndice(forceRefresh = false) {
   });
   await cargarObra(0, forceRefresh);
 }
- 
+
 async function cargarObra(idx, forceRefresh = false) {
   const meta = indiceObras[idx];
   if (!meta) return;
   if (meta._demo) {
-    obraActual = meta._demo.eco;
-    smData     = meta._demo.sm;
+    obraActual   = meta._demo.eco;
+    smData       = meta._demo.sm;
+    obraIdActual = 'demo_' + idx;
     renderEco(obraActual);
     renderTiempos(smData);
     renderTaskTree(smData.tareas);
@@ -514,11 +560,12 @@ async function cargarObra(idx, forceRefresh = false) {
   renderEco(obraActual);
   const smId = meta.smartsheet_id || obraActual.smartsheetId || '';
   if (!smId) { showToast('⚠️ Esta obra no tiene smartsheet_id', 5000); return; }
+  obraIdActual = smId;   // ← key de config para esta obra
   smData = await fetchSmartsheet(smId, forceRefresh);
   renderTiempos(smData);
   renderTaskTree(smData.tareas);
 }
- 
+
 function cambiarObra() {
   const idx = document.getElementById('selectorObra').selectedIndex;
   setLoading(true);
@@ -526,7 +573,7 @@ function cambiarObra() {
     .catch(e => showToast('❌ ' + e.message, 6000))
     .finally(() => setLoading(false));
 }
- 
+
 /* ════════════════════════════════════════════════════
    RENDER ECONÓMICO
 ════════════════════════════════════════════════════ */
@@ -536,7 +583,7 @@ function renderEco(obra) {
   const desv    = real - proy;
   const desvPct = proy ? ((desv/proy)*100).toFixed(1) : '0.0';
   const neg     = desv > 0;
- 
+
   document.getElementById('kpiProy').textContent     = fmt(proy);
   document.getElementById('kpiReal').textContent     = fmt(real);
   document.getElementById('kpiDesvPct').textContent  = (neg?'+':'') + desvPct + '%';
@@ -549,7 +596,7 @@ function renderEco(obra) {
     ultEl.textContent = '📅 Datos al: ' + obra.ultAct;
     ultEl.className   = 'text-xs font-semibold text-indigo-500 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full';
   } else { ultEl.className = 'hidden'; }
- 
+
   if (chart) chart.destroy();
   chart = new Chart(document.getElementById('gastoChart').getContext('2d'), {
     type: 'bar',
@@ -571,17 +618,17 @@ function renderEco(obra) {
     }
   });
 }
- 
+
 /* ════════════════════════════════════════════════════
    RENDER TIEMPOS
 ════════════════════════════════════════════════════ */
 function renderTiempos(sm) {
   const { resumen, tareas } = sm;
   const today = new Date(); today.setHours(0,0,0,0);
-  const cfg   = getConfig();
+  const cfg   = getConfig(obraIdActual);
   const t0    = parseDate(resumen.fechaInicio);
   const t1    = parseDate(resumen.fechaFin);
- 
+
   let b0, b1;
   if (cfg.usarManual && cfg.baseStart && cfg.baseFinish) {
     b0 = parseDate(cfg.baseStart);
@@ -592,24 +639,24 @@ function renderTiempos(sm) {
   }
   const av = resumen.avance;
   if (!t0 || !t1) return;
- 
+
   document.getElementById('avLbl').textContent = av + '%';
   setTimeout(() => {
     document.getElementById('progFill').style.width  = av + '%';
     document.getElementById('progFill').textContent  = av + '%';
   }, 120);
- 
+
   document.getElementById('fInicio').textContent  = fmtFecha(b0);
   document.getElementById('fFinPlan').textContent = fmtFecha(b1);
   document.getElementById('fFinEst').textContent  = fmtFecha(t1);
- 
+
   const diffD       = b1 ? Math.round((t1 - b1) / 86400000) : 0;
   const durBase     = b0 && b1 ? Math.round((b1 - b0) / 86400000) : 0;
   const desvPct     = durBase > 0 ? ((diffD / durBase) * 100).toFixed(1) : 0;
   const estBox      = document.getElementById('fFinEstBox');
   const dBox        = document.getElementById('desvDiasBox');
   const pctEl       = document.getElementById('desvPctVal');
- 
+
   if (diffD <= 0) {
     estBox.className = 'comp-box comp-est-ok';
     document.getElementById('fFinEstLbl').className = 'text-xs font-semibold text-emerald-600 mb-1';
@@ -629,10 +676,10 @@ function renderTiempos(sm) {
     pctEl.textContent = '+' + desvPct + '% desvío';
     pctEl.className = 'text-sm font-bold mt-2 text-rose-600';
   }
- 
+
   drawGantt(tareas, t0, t1, b0, b1, today, av);
 }
- 
+
 /* ════════════════════════════════════════════════════
    GANTT SVG — con bandas de trimestre prolijas
 ════════════════════════════════════════════════════ */
@@ -650,17 +697,17 @@ function setVista(v) {
               today, resumen.avance);
   }
 }
- 
+
 function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   const svg = document.getElementById('ganttSvg');
   const W   = Math.max(svg.parentElement.clientWidth || 600, 600);
   svg.setAttribute('width', W);
- 
+
   if (!t0 || !t1) {
     svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#94a3b8" font-family="DM Sans,sans-serif">Sin datos de fechas</text>';
     return;
   }
- 
+
   const tMax = (t1 && b1) ? (t1 > b1 ? t1 : b1) : (t1 || b1);
   const tMin = (t0 && b0) ? (t0 < b0 ? t0 : b0) : (t0 || b0);
   let vStart, vEnd;
@@ -674,7 +721,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     vStart = new Date(today.getTime() - 86400000*7);
     vEnd   = new Date(today.getTime() + 86400000*23);
   }
- 
+
   const PAD_L = 12, PAD_R = 12;
   const chartW = W - PAD_L - PAD_R;
   function px(date) {
@@ -682,77 +729,102 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     const r = (date - vStart) / (vEnd - vStart);
     return PAD_L + Math.round(r * chartW);
   }
- 
-  // Layout vertical
-  const Y_Q_BAND  = 0;   // altura de la banda de quarters
-  const H_Q       = 24;  // altura de la banda Q
-  const Y_MONTHS  = H_Q; // inicio fila meses
-  const H_MONTHS  = 20;
-  const Y_CONTENT = H_Q + H_MONTHS; // inicio contenido
-  const Y_REAL    = Y_CONTENT + 34;
-  const Y_BASE    = Y_CONTENT + 82;
-  const Y_TASKS   = Y_CONTENT + 124;
-  const H_SVG     = Y_TASKS + 30;
- 
+
+  // Layout vertical — capas bien separadas
+  const H_Q       = 32;  // Banda de quarters (más alta para que respiren)
+  const H_MONTHS  = 22;  // Fila de meses/semanas
+  const H_SEP     = 6;   // Separador extra entre header y contenido
+  const Y_Q_BAND  = 0;
+  const Y_MONTHS  = H_Q;
+  const Y_CONTENT = H_Q + H_MONTHS + H_SEP;
+  const Y_REAL    = Y_CONTENT + 38;
+  const Y_BASE    = Y_CONTENT + 92;
+  const Y_TASKS   = Y_CONTENT + 138;
+  const H_SVG     = Y_TASKS + 34;
+
   svg.setAttribute('height', H_SVG);
- 
+
   let html = '';
- 
-  /* ── 1. BANDAS DE QUARTERS ── */
+
+  /* ── 1. FONDO BLANCO del header completo ── */
+  html += `<rect x="0" y="0" width="${W}" height="${Y_CONTENT}" fill="#f8fafc"/>`;
+
+  /* ── 1b. BANDAS DE QUARTERS ── */
+  const QUARTER_COLORS = [
+    { bg:'#eef2ff', border:'#c7d2fe', text:'#4338ca' },  // indigo
+    { bg:'#f0fdf4', border:'#bbf7d0', text:'#166534' },  // green
+    { bg:'#fff7ed', border:'#fed7aa', text:'#c2410c' },  // orange
+    { bg:'#fdf4ff', border:'#e9d5ff', text:'#7e22ce' },  // purple
+  ];
   const quarters = getQuarterBands(vStart, vEnd);
   quarters.forEach(({ label, start, end }, qi) => {
     const x1 = Math.max(px(start), PAD_L);
     const x2 = Math.min(px(end),   PAD_L + chartW);
     if (x2 <= x1) return;
-    const QUARTER_COLORS = ['#eef2ff','#f0fdf4','#fff7ed','#fdf2f8'];
-    const col = QUARTER_COLORS[qi % 4];
-    html += `<rect x="${x1}" y="${Y_Q_BAND}" width="${x2-x1}" height="${H_Q}" fill="${col}"/>`;
-    // Separador izquierdo
-    if (x1 > PAD_L)
-      html += `<line x1="${x1}" y1="${Y_Q_BAND}" x2="${x1}" y2="${H_SVG}" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,3"/>`;
-    // Label del quarter centrado
+    const qc = QUARTER_COLORS[qi % 4];
+
+    // Fondo del quarter — solo en la fila Q
+    html += `<rect x="${x1}" y="${Y_Q_BAND}" width="${x2-x1}" height="${H_Q}" fill="${qc.bg}"/>`;
+
+    // Separador vertical de quarter — atraviesa TODO el gráfico
+    if (x1 > PAD_L) {
+      html += `<line x1="${x1}" y1="${Y_Q_BAND}" x2="${x1}" y2="${H_SVG}" stroke="${qc.border}" stroke-width="1.5" stroke-dasharray="5,4"/>`;
+    }
+
+    // Pastilla del label del quarter centrado
     const cx = (x1 + x2) / 2;
-    if (x2 - x1 > 28) {
-      html += `<text x="${cx}" y="${Y_Q_BAND + 15}" text-anchor="middle" class="q-band-label" font-size="10" fill="#64748b" font-family="DM Mono,monospace" font-weight="600">${label}</text>`;
+    const labelW = Math.min(x2 - x1 - 8, 80);
+    if (x2 - x1 > 36) {
+      // Píldora de color
+      html += `<rect x="${cx - labelW/2}" y="${Y_Q_BAND + 6}" width="${labelW}" height="20" rx="10" fill="${qc.border}" opacity="0.6"/>`;
+      html += `<text x="${cx}" y="${Y_Q_BAND + 20}" text-anchor="middle" font-size="10" fill="${qc.text}" font-family="DM Mono,monospace" font-weight="700" letter-spacing="0.04em">${label}</text>`;
     }
   });
-  // Borde inferior de la banda Q
-  html += `<line x1="${PAD_L}" y1="${H_Q}" x2="${PAD_L+chartW}" y2="${H_Q}" stroke="#e2e8f0" stroke-width="1"/>`;
- 
-  /* ── 2. MESES ── */
+
+  // Línea separadora entre Q y meses
+  html += `<line x1="${PAD_L}" y1="${H_Q}" x2="${PAD_L+chartW}" y2="${H_Q}" stroke="#e2e8f0" stroke-width="1.5"/>`;
+
+  /* ── 2. FILA DE MESES ── */
   const meses = getMonthLabels(vStart, vEnd);
-  meses.forEach(({ date, label }) => {
+  meses.forEach(({ date, label }, mi) => {
     const x = px(date);
     if (x < PAD_L || x > PAD_L+chartW) return;
+    // Línea de mes — solo desde la fila de meses hacia abajo
     html += `<line x1="${x}" y1="${Y_MONTHS}" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
-    html += `<text x="${x+5}" y="${Y_MONTHS+13}" font-size="10" fill="#94a3b8" font-family="DM Sans,sans-serif" font-weight="600">${label}</text>`;
+    // Label del mes con fondo
+    const lx = x + 5;
+    if (lx + 30 < PAD_L + chartW)
+      html += `<text x="${lx}" y="${Y_MONTHS + 15}" font-size="10" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700">${label}</text>`;
   });
- 
-  /* ── 3. FONDO ZEBRA post-header ── */
+
+  // Línea separadora entre meses y contenido
+  html += `<line x1="${PAD_L}" y1="${Y_CONTENT}" x2="${PAD_L+chartW}" y2="${Y_CONTENT}" stroke="#e2e8f0" stroke-width="1.5"/>`;
+
+  /* ── 3. FONDO ZEBRA por mes en área de contenido ── */
   meses.forEach(({ date }, mi) => {
-    const next  = meses[mi+1]?.date || vEnd;
-    const x1    = Math.max(px(date), PAD_L);
-    const x2    = Math.min(px(next), PAD_L+chartW);
+    const next = meses[mi+1]?.date || vEnd;
+    const x1   = Math.max(px(date), PAD_L);
+    const x2   = Math.min(px(next), PAD_L+chartW);
     if (x2 <= x1) return;
-    html += `<rect x="${x1}" y="${Y_CONTENT}" width="${x2-x1}" height="${H_SVG-Y_CONTENT}" fill="${mi%2===0?'#f8fafc':'#fff'}" opacity="0.5"/>`;
+    html += `<rect x="${x1}" y="${Y_CONTENT}" width="${x2-x1}" height="${H_SVG-Y_CONTENT}" fill="${mi%2===0?'#f8fafc':'#ffffff'}" opacity="0.7"/>`;
   });
- 
+
   /* ── 4. ETIQUETAS DE FILAS ── */
   html += `<text x="${PAD_L}" y="${Y_REAL-12}" font-size="9" fill="#f97316" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">AVANCE REAL</text>`;
   html += `<text x="${PAD_L}" y="${Y_BASE-10}" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">LÍNEA BASE</text>`;
-  html += `<text x="${PAD_L}" y="${Y_TASKS-5}" font-size="9" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">TAREAS</text>`;
- 
+  html += `<text x="${PAD_L}" y="${Y_TASKS-5}" font-size="9" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">ETAPAS / TAREAS</text>`;
+
   /* ── 5. BARRA AVANCE REAL ── */
   const barH    = 22;
   const xT0     = px(t0);
   const xT1     = px(t1);
   const avFrac  = avance / 100;
   const xAvEnd  = px(new Date(t0.getTime() + (t1-t0) * avFrac));
- 
+
   const rBgX1 = Math.max(xT0, PAD_L), rBgX2 = Math.min(xT1, PAD_L+chartW);
   if (rBgX2 > rBgX1)
     html += `<rect x="${rBgX1}" y="${Y_REAL-barH/2}" width="${rBgX2-rBgX1}" height="${barH}" rx="6" fill="#fed7aa" opacity="0.5"/>`;
- 
+
   const avX1 = Math.max(xT0, PAD_L), avX2 = Math.min(xAvEnd, PAD_L+chartW);
   if (avX2 > avX1) {
     html += `<rect x="${avX1}" y="${Y_REAL-barH/2}" width="${avX2-avX1}" height="${barH}" rx="6" fill="#f97316"/>`;
@@ -768,7 +840,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
         html += `<text x="${extX2+5}" y="${Y_REAL+5}" font-size="9" fill="#ef4444" font-family="DM Sans,sans-serif" font-weight="700">+${dias}d</text>`;
     }
   }
- 
+
   /* ── 6. LÍNEA BASE ── */
   const lbX1 = Math.max(px(b0), PAD_L), lbX2 = Math.min(px(b1), PAD_L+chartW);
   if (lbX2 > lbX1) {
@@ -780,22 +852,33 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     if (px(b1) <= PAD_L+chartW)
       html += `<text x="${lbX2}" y="${Y_BASE+18}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700">${fmtCorta(b1)}</text>`;
   }
- 
-  /* ── 7. PUNTOS DE TAREAS ── */
-  const hojas = tareas.filter(t => !t.esPadre).slice(0, 40);
-  hojas.forEach(t => {
+
+  /* ── 7. PUNTITOS — uno por tarea padre posicionado en su fecha media ── */
+  const byIdG = {};
+  tareas.forEach(t => { byIdG[t.id] = t; });
+
+  // Solo hitos críticos en el Gantt
+  const puntosG = tareas.filter(t => t.critico && t.inicio && t.fin);
+
+  puntosG.forEach(t => {
     const td = parseDate(t.inicio), tf = parseDate(t.fin);
     if (!td || !tf) return;
     const xm = px(new Date((td.getTime() + tf.getTime()) / 2));
-    if (xm < PAD_L || xm > PAD_L+chartW) return;
+    if (xm < PAD_L || xm > PAD_L + chartW) return;
     const atrasada = !t.completada && tf < today;
     const col = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
-    const tip = `${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
-    html += `<circle class="hito-dot" cx="${xm}" cy="${Y_TASKS}" r="5" fill="${col}" stroke="#fff" stroke-width="2"
-              onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"/>`;
-    html += `<line x1="${xm}" y1="${Y_TASKS-5}" x2="${xm}" y2="${Y_BASE+16}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.35"/>`;
+    const tip = `${t.critico ? '🔴 HITO CRÍTICO · ' : ''}${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
+
+    if (t.critico) {
+      // Anillo exterior rojo para hitos críticos
+      html += `<circle cx="${xm}" cy="${Y_TASKS}" r="9" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.5"/>`;
+    }
+    html += `<circle class="hito-dot" cx="${xm}" cy="${Y_TASKS}" r="${t.critico ? 6 : 5}" fill="${col}" stroke="#fff" stroke-width="2"
+              onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"
+              onclick="abrirTareaPadre(${t.id})"/>`;
+    html += `<line x1="${xm}" y1="${Y_TASKS-6}" x2="${xm}" y2="${Y_BASE+16}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.3"/>`;
   });
- 
+
   /* ── 8. LÍNEA HOY ── */
   const xH = px(today);
   if (xH >= PAD_L && xH <= PAD_L+chartW) {
@@ -803,10 +886,10 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     html += `<rect x="${xH-18}" y="${H_Q+2}" width="36" height="14" rx="4" fill="#ef4444"/>`;
     html += `<text x="${xH}" y="${H_Q+12}" text-anchor="middle" font-size="9" fill="#fff" font-family="DM Sans,sans-serif" font-weight="800">HOY</text>`;
   }
- 
+
   svg.innerHTML = html;
 }
- 
+
 /* ─── Quarter bands helper ─── */
 function getQuarterBands(start, end) {
   const bands = [];
@@ -820,7 +903,7 @@ function getQuarterBands(start, end) {
   }
   return bands;
 }
- 
+
 /* ─── Month labels ─── */
 function getMonthLabels(start, end) {
   const days = (end - start) / 86400000;
@@ -842,166 +925,358 @@ function getMonthLabels(start, end) {
   }
   return labels;
 }
- 
+
 function showTip(e, text) {
   const t = document.getElementById('ganttTooltip');
   t.textContent = text; t.style.display = 'block';
   t.style.left = (e.clientX+12)+'px'; t.style.top = (e.clientY-30)+'px';
 }
 function hideTip() { document.getElementById('ganttTooltip').style.display='none'; }
- 
+
+// Al hacer clic en un punto del Gantt, expande ese padre en el panel de tareas
+function abrirTareaPadre(padreId) {
+  // Scroll al panel de tareas
+  document.getElementById('taskTree').scrollIntoView({ behavior:'smooth', block:'start' });
+  // Esperar al scroll y luego abrir la fila
+  setTimeout(() => {
+    const row = document.querySelector(`[data-padre-id="${padreId}"]`);
+    if (!row) return;
+    const children = row.nextElementSibling;
+    if (!children) return;
+    if (!children.classList.contains('open')) {
+      children.classList.add('open');
+      row.querySelector('.chevron').style.transform = 'rotate(90deg)';
+      // Flash visual para identificar cuál se abrió
+      row.style.transition = 'background .15s';
+      row.style.background = '#e0e7ff';
+      setTimeout(() => { row.style.background = ''; }, 800);
+    }
+  }, 400);
+}
+
 /* ════════════════════════════════════════════════════
    PANEL DE TAREAS — árbol padre/hija desplegable
 ════════════════════════════════════════════════════ */
 function setFiltroTareas(f) {
   filtroTareas = f;
-  ['todas','pendientes','atrasadas','proximas'].forEach(id => {
-    document.getElementById('ftb'+id.charAt(0).toUpperCase()+id.slice(1))
-      ?.classList.toggle('active', id === f);
+  ['todas','pendientes','atrasadas','proximas','criticas'].forEach(id => {
+    const btn = document.getElementById('ftb' + id.charAt(0).toUpperCase() + id.slice(1));
+    if (!btn) return;
+    const isActive = id === f;
+    btn.classList.toggle('active', isActive);
+    // El botón críticas tiene estilo especial cuando activo
+    if (id === 'criticas') {
+      btn.style.borderColor = isActive ? '#dc2626' : '#fca5a5';
+      btn.style.background  = isActive ? '#dc2626' : '';
+      btn.style.color       = isActive ? '#fff'    : '#dc2626';
+    }
   });
   if (smData) renderTaskTree(smData.tareas);
 }
- 
+
+/* ── Vista dedicada a Hitos Críticos ── */
+function renderVistaCriticas(tareas, today, container) {
+  // Construir mapa para encontrar el padre de cada tarea
+  const byId = {};
+  tareas.forEach(t => { byId[t.id] = t; });
+
+  // Solo las marcadas como crítico
+  const criticas = tareas.filter(t => t.critico);
+
+  if (!criticas.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:40px 20px">
+        <p style="font-size:28px;margin-bottom:8px">🟢</p>
+        <p style="font-size:14px;font-weight:700;color:#374151">Sin hitos críticos marcados</p>
+        <p style="font-size:12px;color:#94a3b8;margin-top:4px">Marcá tareas con la columna "HITO CRITICO" en Smartsheet para verlas acá</p>
+      </div>`;
+    return;
+  }
+
+  // Encabezado resumen
+  const nPend = criticas.filter(t => !t.completada).length;
+  const nAtr  = criticas.filter(t => !t.completada && parseDate(t.fin) < today).length;
+  const hdr   = document.createElement('div');
+  hdr.style.cssText = 'display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:0 4px 16px;border-bottom:2px solid #fee2e2;margin-bottom:16px';
+  hdr.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:20px">🔴</span>
+      <div>
+        <p style="font-size:14px;font-weight:800;color:#1e293b">${criticas.length} hito${criticas.length>1?'s':''} crítico${criticas.length>1?'s':''}</p>
+        <p style="font-size:10px;color:#94a3b8">${nPend} pendiente${nPend!==1?'s':''} · ${nAtr} atrasado${nAtr!==1?'s':''}</p>
+      </div>
+    </div>`;
+  container.appendChild(hdr);
+
+  // Ordenar: atrasadas primero, luego por fecha de fin
+  criticas.sort((a, b) => {
+    const af = parseDate(a.fin), bf = parseDate(b.fin);
+    const aAtr = !a.completada && af && af < today;
+    const bAtr = !b.completada && bf && bf < today;
+    if (aAtr && !bAtr) return -1;
+    if (!aAtr && bAtr) return  1;
+    return (af||new Date(0)) - (bf||new Date(0));
+  });
+
+  criticas.forEach(t => {
+    const tf       = parseDate(t.fin);
+    const ti       = parseDate(t.inicio);
+    const atrasada = !t.completada && tf && tf < today;
+    const col      = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
+    const bgCol    = t.completada ? '#f0fdf4' : atrasada ? '#fff1f2' : '#fffbeb';
+    const bdCol    = t.completada ? '#6ee7b7' : atrasada ? '#fca5a5' : '#fde68a';
+    const diasR    = tf ? diasHasta(tf) : null;
+    const diasTxt  = !t.completada && diasR !== null
+      ? (diasR < 0 ? `⚠ Venció hace ${Math.abs(diasR)} días` : diasR === 0 ? '⏰ Vence HOY' : `📅 Vence en ${diasR} días`)
+      : '';
+
+    // Nombre del padre si existe
+    const padre = t.parentId ? byId[t.parentId] : null;
+
+    const card = document.createElement('div');
+    card.style.cssText = `background:${bgCol};border:1.5px solid ${bdCol};border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:default`;
+    card.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <!-- Ícono estado -->
+        <div style="width:36px;height:36px;border-radius:10px;background:${col}22;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">
+          ${t.completada ? '✅' : atrasada ? '🚨' : '🎯'}
+        </div>
+        <!-- Info -->
+        <div style="flex:1;min-width:0">
+          ${padre ? `<p style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">${padre.nombre}</p>` : ''}
+          <p style="font-size:14px;font-weight:800;color:#1e293b;margin-bottom:4px">${t.nombre}</p>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:11px;color:#64748b;font-weight:600">
+              ${fmtFecha(ti)} → <strong style="color:${col}">${fmtFecha(tf)}</strong>
+            </span>
+            ${diasTxt ? `<span style="font-size:11px;font-weight:800;color:${col}">${diasTxt}</span>` : ''}
+          </div>
+          <!-- Barra de avance -->
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="flex:1;background:#e2e8f0;border-radius:99px;height:8px;overflow:hidden">
+              <div style="width:${t.pct}%;height:100%;background:${col};border-radius:99px;transition:width .8s"></div>
+            </div>
+            <span style="font-size:13px;font-weight:900;color:${col};min-width:36px;text-align:right">${t.pct}%</span>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
 function renderTaskTree(tareas) {
   const container = document.getElementById('taskTree');
   const today     = new Date(); today.setHours(0,0,0,0);
   container.innerHTML = '';
- 
-  // Construir mapa id→tarea y lista de padres
-  const byId   = {};
+
+  // ── Vista especial para CRÍTICAS ──
+  if (filtroTareas === 'criticas') {
+    renderVistaCriticas(tareas, today, container);
+    return;
+  }
+
+  // Mapa id → tarea
+  const byId = {};
   tareas.forEach(t => { byId[t.id] = t; });
- 
-  // Nivel 1 o sin padre → son raíces
-  const raices = tareas.filter(t => !t.parentId || !byId[t.parentId]);
-  const hijas  = {};
+
+  // Mapa padre → hijas
+  const hijas = {};
   tareas.forEach(t => {
     if (t.parentId && byId[t.parentId]) {
       if (!hijas[t.parentId]) hijas[t.parentId] = [];
       hijas[t.parentId].push(t);
     }
   });
- 
-  // Función para decidir si una tarea pasa el filtro
+
+  // Raíces = sin parentId válido
+  const raices = tareas.filter(t => !t.parentId || !byId[t.parentId]);
+
   function pasaFiltro(t) {
-    const tf  = parseDate(t.fin);
-    const ti  = parseDate(t.inicio);
+    const tf = parseDate(t.fin);
+    const ti = parseDate(t.inicio);
     if (filtroTareas === 'todas')      return true;
     if (filtroTareas === 'pendientes') return !t.completada;
     if (filtroTareas === 'atrasadas')  return !t.completada && tf && tf < today;
     if (filtroTareas === 'proximas')   return !t.completada && ti && diasHasta(ti) <= 30 && diasHasta(ti) >= -7;
+    if (filtroTareas === 'criticas')   return !!t.critico;
     return true;
   }
- 
-  // Renderizar una tarea hoja
+
+  // ── Render de una hija ──
   function renderHija(t) {
     const tf       = parseDate(t.fin);
     const ti       = parseDate(t.inicio);
     const atrasada = !t.completada && tf && tf < today;
-    const estado   = t.completada ? 'done' : atrasada ? 'err' : 'warn';
-    const badgeText= t.completada ? 'Completa' : atrasada ? 'Atrasada' : 'En curso';
- 
+    const col      = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
+    const badgeClass = t.completada ? 'badge-done' : atrasada ? 'badge-err' : 'badge-warn';
+    const badgeText  = t.completada ? '✓ Completa' : atrasada ? '⚠ Atrasada' : '● En curso';
+    const diasR      = tf ? diasHasta(tf) : null;
+    const diasTxt    = (!t.completada && diasR !== null)
+      ? (diasR < 0 ? `hace ${Math.abs(diasR)}d` : diasR === 0 ? 'vence hoy' : `en ${diasR}d`)
+      : '';
+
     const d = document.createElement('div');
-    d.className = 'flex items-center gap-3 px-3 py-2 rounded-lg ml-6 hover:bg-gray-50';
+    d.className = 'flex items-start gap-3 px-4 py-2.5 ml-4 rounded-xl hover:bg-gray-50 transition-colors mb-1';
+    d.style.cssText = t.critico
+      ? 'border-left:3px solid #dc2626;background:#fff9f9'
+      : 'border-left:2px solid #e2e8f0';
     d.innerHTML = `
-      <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${t.completada?'#10b981':atrasada?'#ef4444':'#f59e0b'}"></span>
+      <div style="margin-top:4px;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${col}"></div>
       <div style="flex:1;min-width:0">
-        <p style="font-size:12px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</p>
-        <p style="font-size:10px;color:#94a3b8">${fmtCorta(ti)} → ${fmtCorta(tf)}</p>
-      </div>
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <div style="width:60px;background:#e2e8f0;border-radius:99px;height:5px;overflow:hidden">
-          <div style="width:${t.pct}%;height:100%;background:${t.completada?'#10b981':atrasada?'#ef4444':'#f59e0b'};border-radius:99px"></div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px">
+          <p style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">${t.nombre}</p>
+          ${t.critico ? `<span style="font-size:9px;font-weight:800;background:#fee2e2;color:#dc2626;border-radius:99px;padding:1px 6px;flex-shrink:0">🔴 HITO</span>` : ''}
         </div>
-        <span style="font-size:10px;font-weight:700;color:#64748b;width:30px;text-align:right">${t.pct}%</span>
-        <span class="badge badge-${estado}">${badgeText}</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:10px;color:#64748b;font-weight:600">📅 ${fmtFecha(ti)} → ${fmtFecha(tf)}</span>
+          ${diasTxt ? `<span style="font-size:10px;font-weight:700;color:${atrasada?'#ef4444':'#64748b'}">${diasTxt}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+        <span class="badge ${badgeClass}">${badgeText}</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <div style="width:52px;background:#e2e8f0;border-radius:99px;height:5px;overflow:hidden">
+            <div style="width:${t.pct}%;height:100%;background:${col};border-radius:99px"></div>
+          </div>
+          <span style="font-size:11px;font-weight:800;color:${col}">${t.pct}%</span>
+        </div>
       </div>`;
     return d;
   }
- 
-  // Renderizar un padre con sus hijas
+
+  // ── Render de un padre ──
   function renderPadre(t) {
-    const hh    = hijas[t.id] || [];
-    const tf    = parseDate(t.fin);
-    const ti    = parseDate(t.inicio);
-    const atrasada = !t.completada && tf && tf < today;
- 
-    // Decidir si este padre debe mostrarse según filtro
-    const hijasPasan = hh.filter(pasaFiltro);
-    const padrePasa  = pasaFiltro(t);
-    if (!padrePasa && hijasPasan.length === 0) return null;
- 
-    const wrap  = document.createElement('div');
-    wrap.className = 'mb-1';
- 
+    const hh          = hijas[t.id] || [];
+    const tf          = parseDate(t.fin);
+    const ti          = parseDate(t.inicio);
+    const atrasada    = !t.completada && tf && tf < today;
+    const hijasPasan  = hh.filter(pasaFiltro);
+    if (!pasaFiltro(t) && hijasPasan.length === 0) return null;
+
+    // Estadísticas de hijas
+    const hhConFechas = hh.filter(h => h.inicio && h.fin);
+    const nTotal      = hhConFechas.length;
+    const nDone       = hhConFechas.filter(h => h.completada).length;
+    const nAtr        = hhConFechas.filter(h => !h.completada && parseDate(h.fin) < today).length;
+    const nCurso      = nTotal - nDone - nAtr;
+
+    // Hijas críticas
+    const nCrit = hhConFechas.filter(h => h.critico).length;
+
+    // Color principal del padre
+    const colP = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#6366f1';
+    const bgP  = t.completada ? '#f0fdf4' : atrasada ? '#fff1f2' : '#f5f3ff';
+    const bdP  = t.completada ? '#6ee7b7' : atrasada ? '#fca5a5' : '#c4b5fd';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'mb-2';
+
+    // ── Fila del padre ──
     const row = document.createElement('div');
-    row.className = 'task-row padre flex items-center gap-3 px-3 py-2.5';
-    const tieneHijas = hh.length > 0;
- 
+    row.className   = 'task-row padre flex flex-col gap-2 px-4 py-3 rounded-xl cursor-pointer select-none';
+    row.style.cssText = `background:${bgP};border:1.5px solid ${bdP};`;
+    row.setAttribute('data-padre-id', t.id);
+
+    // Duración en días
+    const durTxt = (ti && tf)
+      ? Math.round((tf - ti) / 86400000) + ' días'
+      : '';
+
     row.innerHTML = `
-      <span style="font-size:14px;transition:transform .2s;display:inline-block" class="chevron">${tieneHijas?'▶':' '}</span>
-      <div style="flex:1;min-width:0">
-        <p style="font-size:13px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.nombre}</p>
-        <p style="font-size:10px;color:#64748b">${fmtCorta(ti)} → ${fmtCorta(tf)} · ${hh.length} subtareas · ${t.pct}% completado</p>
-      </div>
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <div style="width:80px;background:#e2e8f0;border-radius:99px;height:6px;overflow:hidden">
-          <div style="width:${t.pct}%;height:100%;background:#6366f1;border-radius:99px"></div>
+      <!-- Fila superior: chevron + nombre + badges -->
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="chevron" style="font-size:12px;transition:transform .25s;display:inline-block;color:${colP};flex-shrink:0">${hh.length>0?'▶':'—'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <p style="font-size:13px;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px">${t.nombre}</p>
+            ${t.critico ? `<span style="font-size:9px;font-weight:800;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:99px;padding:1px 6px">🔴 CRÍTICA</span>` : ''}
+            ${nCrit > 0 && !t.critico ? `<span style="font-size:9px;font-weight:700;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:99px;padding:1px 6px">⚠ ${nCrit} crítica${nCrit>1?'s':''}</span>` : ''}
+            ${t.completada  ? `<span class="badge badge-done">✓ Completa</span>` : ''}
+            ${atrasada      ? `<span class="badge badge-err">⚠ Atrasada</span>` : ''}
+            ${!t.completada && !atrasada ? `<span class="badge badge-warn">● En curso</span>` : ''}
+          </div>
+          <p style="font-size:10px;color:#64748b;margin-top:1px">${fmtCorta(ti)} → ${fmtCorta(tf)}${durTxt?' · '+durTxt:''}</p>
         </div>
-        <span style="font-size:11px;font-weight:700;color:#6366f1;width:34px;text-align:right">${t.pct}%</span>
-        ${atrasada ? '<span class="badge badge-err">Atrasada</span>' : t.completada ? '<span class="badge badge-done">Completa</span>' : ''}
-      </div>`;
- 
+        <!-- % grande -->
+        <div style="text-align:right;flex-shrink:0">
+          <p style="font-size:20px;font-weight:900;color:${colP};line-height:1">${t.pct}%</p>
+          <p style="font-size:9px;color:#94a3b8;font-weight:600">avance</p>
+        </div>
+      </div>
+
+      <!-- Barra de progreso del padre -->
+      <div style="background:#e2e8f0;border-radius:99px;height:7px;overflow:hidden;width:100%">
+        <div style="width:${t.pct}%;height:100%;background:${colP};border-radius:99px;transition:width .8s"></div>
+      </div>
+
+      <!-- Fila inferior: conteo de hijas -->
+      ${nTotal > 0 ? `
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:10px;color:#64748b;font-weight:600">${nTotal} subtareas</span>
+        ${nDone  > 0 ? `<span style="font-size:10px;color:#10b981;font-weight:700;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span>${nDone} completadas</span>` : ''}
+        ${nCurso > 0 ? `<span style="font-size:10px;color:#f59e0b;font-weight:700;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block"></span>${nCurso} en curso</span>` : ''}
+        ${nAtr   > 0 ? `<span style="font-size:10px;color:#ef4444;font-weight:700;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block"></span>${nAtr} atrasadas</span>` : ''}
+      </div>` : ''}`;
+
+    // ── Panel de hijas (colapsable) ──
     const children = document.createElement('div');
-    children.className = 'task-children';
- 
-    if (tieneHijas) {
-      (filtroTareas !== 'todas' ? hijasPasan : hh).forEach(h => {
-        children.appendChild(renderHija(h));
-      });
+    children.className = 'task-children pl-2 pt-1';
+
+    if (hh.length > 0) {
+      const listToShow = filtroTareas !== 'todas' ? hijasPasan : hh;
+      if (listToShow.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'text-xs text-gray-400 px-4 py-2';
+        empty.textContent = 'Sin tareas para este filtro';
+        children.appendChild(empty);
+      } else {
+        listToShow.forEach(h => children.appendChild(renderHija(h)));
+      }
+
       row.addEventListener('click', () => {
         const open = children.classList.toggle('open');
         row.querySelector('.chevron').style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
       });
     }
- 
+
     wrap.appendChild(row);
     wrap.appendChild(children);
     return wrap;
   }
- 
-  // También mostrar tareas sin padre que no son padre
-  const tareasHuerfanas = tareas.filter(t => !t.esPadre && (!t.parentId || !byId[t.parentId]) && pasaFiltro(t));
- 
+
+  // Mostrar padres primero
+  let shown = 0;
   raices.forEach(t => {
     if (t.esPadre || hijas[t.id]?.length > 0) {
       const el = renderPadre(t);
-      if (el) container.appendChild(el);
+      if (el) { container.appendChild(el); shown++; }
     }
   });
- 
-  tareasHuerfanas.forEach(t => {
-    if (!raices.find(r => r.id === t.id)) {
-      container.appendChild(renderHija(t));
-    }
-  });
- 
-  if (!container.children.length) {
-    container.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">No hay tareas para el filtro seleccionado.</p>';
+
+  // Tareas huérfanas (sin padre, no esPadre)
+  const huerfanas = tareas.filter(t =>
+    !t.esPadre && (!t.parentId || !byId[t.parentId]) && pasaFiltro(t)
+    && !raices.find(r => r.id === t.id && (r.esPadre || hijas[r.id]?.length > 0))
+  );
+  huerfanas.forEach(t => { container.appendChild(renderHija(t)); shown++; });
+
+  if (!shown) {
+    container.innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No hay tareas para el filtro seleccionado.</p>';
   }
 }
- 
+
 /* ════════════════════════════════════════════════════
    DEMO DATA
 ════════════════════════════════════════════════════ */
 function cargarDemo() {
   const today = new Date(); today.setHours(0,0,0,0);
   const ds = d => { const x = new Date(today); x.setDate(x.getDate()+d); return x.toISOString().slice(0,10); };
- 
+
   const tareasPadre1 = { id: 100, parentId: null, nivel:1, nombre:'Estructura', inicio:ds(-180), fin:ds(-50), pct:100, baseStart:ds(-180), baseFinish:ds(-60), completada:true, esPadre:true, duracionDias:130 };
   const tareasPadre2 = { id: 200, parentId: null, nivel:1, nombre:'Mampostería', inicio:ds(-49), fin:ds(30), pct:60,  baseStart:ds(-49),   baseFinish:ds(10),  completada:false, esPadre:true, duracionDias:79 };
   const tareasPadre3 = { id: 300, parentId: null, nivel:1, nombre:'Instalaciones', inicio:ds(31), fin:ds(100), pct:0, baseStart:ds(11), baseFinish:ds(80), completada:false, esPadre:true, duracionDias:69 };
   const tareasPadre4 = { id: 400, parentId: null, nivel:1, nombre:'Terminaciones', inicio:ds(101), fin:ds(150), pct:0, baseStart:ds(81), baseFinish:ds(130), completada:false, esPadre:true, duracionDias:49 };
- 
+
   const demos = [{
     nombre: 'Edificio Residencial Norte', estado: 'En curso',
     eco: { nombre:'Edificio Residencial Norte', presupuesto:18500000, gastoReal:14200000, ultAct:'10/05/2025' },
@@ -1028,7 +1303,7 @@ function cargarDemo() {
       ]
     }
   }];
- 
+
   indiceObras = demos.map(d => ({ nombre:d.nombre, estado:d.estado, _demo:d }));
   const sel = document.getElementById('selectorObra');
   sel.innerHTML = '';
@@ -1044,7 +1319,7 @@ function cargarDemo() {
   renderTaskTree(smData.tareas);
   showToast('🛠️ Modo demo — conectá Smartsheet para datos reales', 6000);
 }
- 
+
 /* ─── UI helpers ─── */
 function setLoading(on) {
   document.getElementById('loadingBar').classList.toggle('hidden', !on);
@@ -1056,7 +1331,7 @@ function showToast(msg, dur=3000) {
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), dur);
 }
- 
+
 /* ─── Refrescar ─── */
 async function refrescar(forceRefresh = false) {
   setLoading(true);
@@ -1074,14 +1349,14 @@ async function refrescar(forceRefresh = false) {
     document.getElementById('mainContent').classList.replace('opacity-0','opacity-100');
   } finally { setLoading(false); }
 }
- 
+
 /* ─── Init ─── */
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hdrFecha').textContent =
     new Date().toLocaleDateString('es-AR', {day:'2-digit',month:'long',year:'numeric'});
   refrescar(false);
 });
- 
+
 window.addEventListener('resize', () => {
   if (smData) {
     const { resumen, tareas } = smData;
