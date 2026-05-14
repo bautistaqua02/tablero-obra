@@ -28,66 +28,44 @@
 
   .card { background: var(--surface); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); }
 
-  /* chips */
   .chip-pos { background: #ecfdf5; border: 1.5px solid #6ee7b7; color: #065f46; }
   .chip-neg { background: #fff1f2; border: 1.5px solid #fda4af; color: #9f1239; }
 
-  /* select */
   .sel { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .75rem center; padding-right: 2.25rem; }
 
-  /* toast */
   #toast { position: fixed; bottom: 24px; right: 24px; z-index: 200; background: #1e293b; color: #fff; padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all .3s; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
   #toast.show { transform: translateY(0); opacity: 1; }
 
-  /* spinner */
   .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* progress bar */
   .prog-track { background: #e2e8f0; border-radius: 99px; height: 28px; overflow: hidden; }
   .prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f97316, #fb923c); width: 0%; transition: width 1.2s cubic-bezier(.4,0,.2,1); display: flex; align-items: center; padding-left: 14px; font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; }
 
-  /* gantt toggle */
   .gantt-toggle-btn { padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--border); background: #fff; color: var(--muted); cursor: pointer; transition: all .2s; }
   .gantt-toggle-btn.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
 
-  /* gantt scroll */
   #ganttWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
   #ganttSvg { display: block; }
 
-  /* task tree */
-  .task-row { border-radius: 10px; transition: background .15s; cursor: pointer; }
-  .task-row:hover { background: #f8fafc; }
-  .task-row.padre { background: #f5f3ff; border-left: 3px solid var(--indigo); }
-  .task-row.padre:hover { background: #ede9fe; }
-  .task-children { overflow: hidden; transition: max-height .35s cubic-bezier(.4,0,.2,1); max-height: 0; }
-  .task-children.open { max-height: 2000px; }
   .badge { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 99px; font-size: 10px; font-weight: 700; }
   .badge-ok { background: #dcfce7; color: #166534; }
   .badge-warn { background: #fef9c3; color: #92400e; }
   .badge-err { background: #fee2e2; color: #991b1b; }
   .badge-done { background: #e0e7ff; color: #3730a3; }
 
-  /* quarter bands */
-  .q-band-label { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: .05em; }
-
-  /* desvio box */
   .comp-box { border-radius: 10px; padding: 12px 14px; border-left: 4px solid; }
   .comp-plan { border-color: var(--indigo); background: #eef2ff; }
   .comp-est-ok { border-color: var(--green); background: #ecfdf5; }
   .comp-est-bad { border-color: var(--red); background: #fff1f2; }
 
-  /* config modal */
   #configModal { backdrop-filter: blur(4px); }
 
-  /* loading bar */
   #loadingBar { height: 3px; background: linear-gradient(90deg, var(--indigo), var(--orange)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
   @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-  /* hito dot */
   .hito-dot { cursor: pointer; }
 
-  /* section headers */
   .section-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 </style>
 </head>
@@ -132,11 +110,8 @@
       </button>
     </div>
     <div class="space-y-4">
-
-      <!-- Nombre de la obra activa -->
       <div id="cfgObraNombre" class="hidden"></div>
       <div id="cfgGuardadoInd" class="text-xs text-gray-400"></div>
-
       <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
         <p class="text-xs font-semibold text-blue-700 mb-1">Línea Base (Revisión 0)</p>
         <p class="text-xs text-blue-600">Fechas originales del cronograma. Se guarda individualmente por obra y persiste entre sesiones.</p>
@@ -154,14 +129,6 @@
         <input type="checkbox" id="cfgUsarManual" class="w-4 h-4 text-indigo-600 rounded">
         <label for="cfgUsarManual" class="text-sm text-gray-700">Usar fechas manuales en vez de Smartsheet</label>
       </div>
-      <details class="mt-2">
-        <summary class="text-xs font-semibold text-gray-500 cursor-pointer hover:text-gray-700">Cómo se calculan las métricas</summary>
-        <div class="mt-3 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 space-y-2">
-          <p><strong>Desvío en días:</strong> Fecha Fin Real − Fecha Fin Base</p>
-          <p><strong>Desvío en %:</strong> (Días desvío / Duración Base) × 100</p>
-          <p><strong>Avance físico:</strong> Promedio ponderado por duración, solo tareas hoja.</p>
-        </div>
-      </details>
     </div>
     <div class="flex gap-2 mt-6">
       <button onclick="borrarConfigObra()" class="px-3 py-2 border border-rose-200 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-50 hover:text-rose-600 transition-colors" title="Borrar línea base de esta obra">🗑️</button>
@@ -294,22 +261,13 @@
     </div>
   </section>
 
-  <!-- ══ PANEL DE TAREAS ══ -->
+  <!-- ══ PANEL DE HITOS CRÍTICOS ══ -->
   <section>
-    <div class="flex items-center justify-between mb-5">
-      <div class="flex items-center gap-3">
-        <div class="section-icon bg-slate-100">📋</div>
-        <div>
-          <h2 class="text-base font-bold text-gray-800">Tareas Pendientes</h2>
-          <p class="text-xs text-gray-400">Clic en una tarea padre para ver sus subtareas</p>
-        </div>
-      </div>
-      <div class="flex gap-2 flex-wrap">
-        <button onclick="setFiltroTareas('todas')" id="ftbTodas" class="gantt-toggle-btn text-xs">Todas</button>
-        <button onclick="setFiltroTareas('pendientes')" id="ftbPend" class="gantt-toggle-btn text-xs">Pendientes</button>
-        <button onclick="setFiltroTareas('atrasadas')" id="ftbAtr" class="gantt-toggle-btn text-xs">Atrasadas</button>
-        <button onclick="setFiltroTareas('proximas')" id="ftbProx" class="gantt-toggle-btn text-xs">Próximas 30d</button>
-        <button onclick="setFiltroTareas('criticas')" id="ftbCrit" class="gantt-toggle-btn active text-xs" style="background:#dc2626;border-color:#dc2626;color:#fff">🔴 Críticas</button>
+    <div class="flex items-center gap-3 mb-5">
+      <div class="section-icon bg-red-100">🔴</div>
+      <div>
+        <h2 class="text-base font-bold text-gray-800">Hitos Críticos</h2>
+        <p class="text-xs text-gray-400">Solo tareas marcadas como críticas en Smartsheet</p>
       </div>
     </div>
     <div id="taskTree" class="card p-5 space-y-1.5"></div>
@@ -322,9 +280,6 @@
 <div id="ganttTooltip" style="position:fixed;display:none;background:#1e293b;color:#fff;padding:7px 13px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3)"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════
-   CONFIGURACIÓN
-═══════════════════════════════════════════════════════ */
 const BASE_SHEET_ID  = '';
 const INDICE_GID     = '0';
 const API_BASE       = '';
@@ -341,15 +296,10 @@ let obraActual   = null;
 let smData       = null;
 let chart        = null;
 let vistaGantt   = 'total';
-let filtroTareas = 'criticas';
 
 const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString('es-AR');
 
-/* ─── Config línea base POR OBRA ─── */
-let obraIdActual = '';   // se setea cuando carga la obra
-
 function getConfigKey(id) { return 'tableroConfig_' + (id || 'default'); }
-
 function getConfig(id) {
   const key = getConfigKey(id || obraIdActual);
   const s   = localStorage.getItem(key);
@@ -358,24 +308,18 @@ function getConfig(id) {
 function saveConfig(cfg, id) {
   localStorage.setItem(getConfigKey(id || obraIdActual), JSON.stringify(cfg));
 }
+let obraIdActual = '';
 
 function abrirConfig() {
   const cfg = getConfig();
   document.getElementById('cfgBaseStart').value    = cfg.baseStart  || '';
   document.getElementById('cfgBaseFinish').value   = cfg.baseFinish || '';
   document.getElementById('cfgUsarManual').checked = cfg.usarManual || false;
-
-  // Mostrar nombre de la obra actual en el modal
   const nomEl = document.getElementById('cfgObraNombre');
   if (obraActual?.nombre) {
     nomEl.textContent = '📐 Obra: ' + obraActual.nombre;
     nomEl.className   = 'text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-xl';
-  } else {
-    nomEl.textContent = '';
-    nomEl.className   = 'hidden';
-  }
-
-  // Indicador si ya tiene config guardada
+  } else { nomEl.textContent = ''; nomEl.className = 'hidden'; }
   const indEl = document.getElementById('cfgGuardadoInd');
   if (cfg.baseStart && cfg.baseFinish) {
     indEl.textContent = '✅ Línea base guardada para esta obra';
@@ -384,12 +328,9 @@ function abrirConfig() {
     indEl.textContent = '⚪ Sin línea base manual configurada';
     indEl.className   = 'text-xs text-gray-400';
   }
-
   document.getElementById('configModal').classList.remove('hidden');
 }
-
 function cerrarConfig() { document.getElementById('configModal').classList.add('hidden'); }
-
 function guardarConfig() {
   const cfg = {
     baseStart:   document.getElementById('cfgBaseStart').value  || null,
@@ -398,10 +339,9 @@ function guardarConfig() {
   };
   saveConfig(cfg);
   cerrarConfig();
-  showToast('✅ Línea base guardada para "' + (obraActual?.nombre || 'esta obra') + '"');
+  showToast('✅ Línea base guardada');
   if (smData) renderTiempos(smData);
 }
-
 function borrarConfigObra() {
   if (!confirm('¿Borrar la línea base guardada para esta obra?')) return;
   localStorage.removeItem(getConfigKey());
@@ -410,7 +350,6 @@ function borrarConfigObra() {
   if (smData) renderTiempos(smData);
 }
 
-/* ─── Helpers ─── */
 function cleanNum(s) {
   if (!s && s !== 0) return 0;
   const c = String(s).trim().replace(/^[oO]\./, '0.').replace(/\$/g,'').replace(/\./g,'').replace(',','.');
@@ -442,7 +381,6 @@ function diasHasta(date) {
   return Math.round((date - today) / 86400000);
 }
 
-/* ─── CSV fetch (modo Google Sheets) ─── */
 async function fetchCSV(url) {
   let lastErr;
   for (const proxy of PROXIES) {
@@ -488,7 +426,6 @@ function parseObraKV(text) {
   };
 }
 
-/* ─── Smartsheet via API propia ─── */
 async function fetchSmartsheet(sheetId, forceRefresh = false) {
   const url = `${API_BASE}/api/obra?id=${sheetId}${forceRefresh ? '&nocache=1' : ''}`;
   const res = await fetch(url);
@@ -499,10 +436,9 @@ async function fetchSmartsheet(sheetId, forceRefresh = false) {
   return res.json();
 }
 
-/* ─── Carga directa ─── */
 async function cargarObraDirecta(smId, forceRefresh = false) {
   smData = await fetchSmartsheet(smId, forceRefresh);
-  obraIdActual = smId;   // ← key de config para esta obra
+  obraIdActual = smId;
   const sel = document.getElementById('selectorObra');
   sel.innerHTML = '<option>' + (smData.resumen?.nombre || 'Mi Obra') + '</option>';
   obraActual = {
@@ -516,7 +452,6 @@ async function cargarObraDirecta(smId, forceRefresh = false) {
   renderTaskTree(smData.tareas);
 }
 
-/* ─── Carga índice ─── */
 async function cargarIndice(forceRefresh = false) {
   if (!BASE_SHEET_ID) {
     await cargarObraDirecta(SMARTSHEET_ID, forceRefresh);
@@ -560,7 +495,7 @@ async function cargarObra(idx, forceRefresh = false) {
   renderEco(obraActual);
   const smId = meta.smartsheet_id || obraActual.smartsheetId || '';
   if (!smId) { showToast('⚠️ Esta obra no tiene smartsheet_id', 5000); return; }
-  obraIdActual = smId;   // ← key de config para esta obra
+  obraIdActual = smId;
   smData = await fetchSmartsheet(smId, forceRefresh);
   renderTiempos(smData);
   renderTaskTree(smData.tareas);
@@ -574,9 +509,7 @@ function cambiarObra() {
     .finally(() => setLoading(false));
 }
 
-/* ════════════════════════════════════════════════════
-   RENDER ECONÓMICO
-════════════════════════════════════════════════════ */
+/* ════ RENDER ECONÓMICO ════ */
 function renderEco(obra) {
   const proy    = obra.presupuesto;
   const real    = obra.gastoReal;
@@ -619,9 +552,7 @@ function renderEco(obra) {
   });
 }
 
-/* ════════════════════════════════════════════════════
-   RENDER TIEMPOS
-════════════════════════════════════════════════════ */
+/* ════ RENDER TIEMPOS ════ */
 function renderTiempos(sm) {
   const { resumen, tareas } = sm;
   const today = new Date(); today.setHours(0,0,0,0);
@@ -650,12 +581,12 @@ function renderTiempos(sm) {
   document.getElementById('fFinPlan').textContent = fmtFecha(b1);
   document.getElementById('fFinEst').textContent  = fmtFecha(t1);
 
-  const diffD       = b1 ? Math.round((t1 - b1) / 86400000) : 0;
-  const durBase     = b0 && b1 ? Math.round((b1 - b0) / 86400000) : 0;
-  const desvPct     = durBase > 0 ? ((diffD / durBase) * 100).toFixed(1) : 0;
-  const estBox      = document.getElementById('fFinEstBox');
-  const dBox        = document.getElementById('desvDiasBox');
-  const pctEl       = document.getElementById('desvPctVal');
+  const diffD   = b1 ? Math.round((t1 - b1) / 86400000) : 0;
+  const durBase = b0 && b1 ? Math.round((b1 - b0) / 86400000) : 0;
+  const desvPct = durBase > 0 ? ((diffD / durBase) * 100).toFixed(1) : 0;
+  const estBox  = document.getElementById('fFinEstBox');
+  const dBox    = document.getElementById('desvDiasBox');
+  const pctEl   = document.getElementById('desvPctVal');
 
   if (diffD <= 0) {
     estBox.className = 'comp-box comp-est-ok';
@@ -680,9 +611,7 @@ function renderTiempos(sm) {
   drawGantt(tareas, t0, t1, b0, b1, today, av);
 }
 
-/* ════════════════════════════════════════════════════
-   GANTT SVG — con bandas de trimestre prolijas
-════════════════════════════════════════════════════ */
+/* ════ GANTT SVG — trimestres sin stacking ════ */
 function setVista(v) {
   vistaGantt = v;
   ['total','trimestre','mes'].forEach(id => {
@@ -730,10 +659,10 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     return PAD_L + Math.round(r * chartW);
   }
 
-  // Layout vertical — capas bien separadas
-  const H_Q       = 32;  // Banda de quarters (más alta para que respiren)
-  const H_MONTHS  = 22;  // Fila de meses/semanas
-  const H_SEP     = 6;   // Separador extra entre header y contenido
+  // Layout vertical
+  const H_Q       = 26;  // Banda quarter
+  const H_MONTHS  = 20;  // Fila meses
+  const H_SEP     = 4;
   const Y_Q_BAND  = 0;
   const Y_MONTHS  = H_Q;
   const Y_CONTENT = H_Q + H_MONTHS + H_SEP;
@@ -746,61 +675,64 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
 
   let html = '';
 
-  /* ── 1. FONDO BLANCO del header completo ── */
+  // Fondo header
   html += `<rect x="0" y="0" width="${W}" height="${Y_CONTENT}" fill="#f8fafc"/>`;
 
-  /* ── 1b. BANDAS DE QUARTERS ── */
+  /* ── BANDAS DE QUARTERS — sin stacking ──
+     Colores alternos, label una sola vez, centrado en el espacio visible.
+     Si el espacio visible es < 32px, se omite el label. */
   const QUARTER_COLORS = [
-    { bg:'#eef2ff', border:'#c7d2fe', text:'#4338ca' },  // indigo
-    { bg:'#f0fdf4', border:'#bbf7d0', text:'#166534' },  // green
-    { bg:'#fff7ed', border:'#fed7aa', text:'#c2410c' },  // orange
-    { bg:'#fdf4ff', border:'#e9d5ff', text:'#7e22ce' },  // purple
+    { bg:'#eef2ff', border:'#c7d2fe', text:'#4338ca' },
+    { bg:'#f0fdf4', border:'#bbf7d0', text:'#166534' },
+    { bg:'#fff7ed', border:'#fed7aa', text:'#c2410c' },
+    { bg:'#fdf4ff', border:'#e9d5ff', text:'#7e22ce' },
   ];
+
   const quarters = getQuarterBands(vStart, vEnd);
   quarters.forEach(({ label, start, end }, qi) => {
     const x1 = Math.max(px(start), PAD_L);
     const x2 = Math.min(px(end),   PAD_L + chartW);
     if (x2 <= x1) return;
-    const qc = QUARTER_COLORS[qi % 4];
+    const qc  = QUARTER_COLORS[qi % 4];
+    const bw  = x2 - x1;
 
-    // Fondo del quarter — solo en la fila Q
-    html += `<rect x="${x1}" y="${Y_Q_BAND}" width="${x2-x1}" height="${H_Q}" fill="${qc.bg}"/>`;
+    // Fondo del quarter
+    html += `<rect x="${x1}" y="${Y_Q_BAND}" width="${bw}" height="${H_Q}" fill="${qc.bg}"/>`;
 
-    // Separador vertical de quarter — atraviesa TODO el gráfico
+    // Línea vertical izquierda del quarter (solo si no es el primero del área visible)
     if (x1 > PAD_L) {
       html += `<line x1="${x1}" y1="${Y_Q_BAND}" x2="${x1}" y2="${H_SVG}" stroke="${qc.border}" stroke-width="1.5" stroke-dasharray="5,4"/>`;
     }
 
-    // Pastilla del label del quarter centrado
-    const cx = (x1 + x2) / 2;
-    const labelW = Math.min(x2 - x1 - 8, 80);
-    if (x2 - x1 > 36) {
-      // Píldora de color
-      html += `<rect x="${cx - labelW/2}" y="${Y_Q_BAND + 6}" width="${labelW}" height="20" rx="10" fill="${qc.border}" opacity="0.6"/>`;
-      html += `<text x="${cx}" y="${Y_Q_BAND + 20}" text-anchor="middle" font-size="10" fill="${qc.text}" font-family="DM Mono,monospace" font-weight="700" letter-spacing="0.04em">${label}</text>`;
+    // Label del quarter — una sola línea, centrada, solo si hay espacio
+    if (bw >= 36) {
+      const cx = x1 + bw / 2;
+      // Recortar el label si el espacio es ajustado
+      const shortLabel = bw < 70 ? label.replace(/\s\d{4}/, '') : label; // quita el año si estrecho
+      html += `<text x="${cx}" y="${Y_Q_BAND + 17}" text-anchor="middle" dominant-baseline="middle"
+        font-size="10" fill="${qc.text}" font-family="DM Mono,monospace" font-weight="700"
+        letter-spacing="0.04em">${shortLabel}</text>`;
     }
   });
 
-  // Línea separadora entre Q y meses
+  // Línea separadora Q / meses
   html += `<line x1="${PAD_L}" y1="${H_Q}" x2="${PAD_L+chartW}" y2="${H_Q}" stroke="#e2e8f0" stroke-width="1.5"/>`;
 
-  /* ── 2. FILA DE MESES ── */
+  /* ── FILA DE MESES ── */
   const meses = getMonthLabels(vStart, vEnd);
   meses.forEach(({ date, label }, mi) => {
     const x = px(date);
     if (x < PAD_L || x > PAD_L+chartW) return;
-    // Línea de mes — solo desde la fila de meses hacia abajo
     html += `<line x1="${x}" y1="${Y_MONTHS}" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
-    // Label del mes con fondo
     const lx = x + 5;
     if (lx + 30 < PAD_L + chartW)
-      html += `<text x="${lx}" y="${Y_MONTHS + 15}" font-size="10" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700">${label}</text>`;
+      html += `<text x="${lx}" y="${Y_MONTHS + 14}" font-size="10" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700">${label}</text>`;
   });
 
-  // Línea separadora entre meses y contenido
+  // Separador header / contenido
   html += `<line x1="${PAD_L}" y1="${Y_CONTENT}" x2="${PAD_L+chartW}" y2="${Y_CONTENT}" stroke="#e2e8f0" stroke-width="1.5"/>`;
 
-  /* ── 3. FONDO ZEBRA por mes en área de contenido ── */
+  /* ── ZEBRA meses ── */
   meses.forEach(({ date }, mi) => {
     const next = meses[mi+1]?.date || vEnd;
     const x1   = Math.max(px(date), PAD_L);
@@ -809,17 +741,17 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     html += `<rect x="${x1}" y="${Y_CONTENT}" width="${x2-x1}" height="${H_SVG-Y_CONTENT}" fill="${mi%2===0?'#f8fafc':'#ffffff'}" opacity="0.7"/>`;
   });
 
-  /* ── 4. ETIQUETAS DE FILAS ── */
+  /* ── ETIQUETAS DE FILAS ── */
   html += `<text x="${PAD_L}" y="${Y_REAL-12}" font-size="9" fill="#f97316" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">AVANCE REAL</text>`;
   html += `<text x="${PAD_L}" y="${Y_BASE-10}" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">LÍNEA BASE</text>`;
-  html += `<text x="${PAD_L}" y="${Y_TASKS-5}" font-size="9" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">ETAPAS / TAREAS</text>`;
+  html += `<text x="${PAD_L}" y="${Y_TASKS-5}" font-size="9" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">HITOS CRÍTICOS</text>`;
 
-  /* ── 5. BARRA AVANCE REAL ── */
-  const barH    = 22;
-  const xT0     = px(t0);
-  const xT1     = px(t1);
-  const avFrac  = avance / 100;
-  const xAvEnd  = px(new Date(t0.getTime() + (t1-t0) * avFrac));
+  /* ── BARRA AVANCE REAL ── */
+  const barH   = 22;
+  const xT0    = px(t0);
+  const xT1    = px(t1);
+  const avFrac = avance / 100;
+  const xAvEnd = px(new Date(t0.getTime() + (t1-t0) * avFrac));
 
   const rBgX1 = Math.max(xT0, PAD_L), rBgX2 = Math.min(xT1, PAD_L+chartW);
   if (rBgX2 > rBgX1)
@@ -841,7 +773,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     }
   }
 
-  /* ── 6. LÍNEA BASE ── */
+  /* ── LÍNEA BASE ── */
   const lbX1 = Math.max(px(b0), PAD_L), lbX2 = Math.min(px(b1), PAD_L+chartW);
   if (lbX2 > lbX1) {
     html += `<rect x="${lbX1}" y="${Y_BASE-4}" width="${lbX2-lbX1}" height="8" rx="4" fill="#6366f1"/>`;
@@ -853,13 +785,8 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
       html += `<text x="${lbX2}" y="${Y_BASE+18}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700">${fmtCorta(b1)}</text>`;
   }
 
-  /* ── 7. PUNTITOS — uno por tarea padre posicionado en su fecha media ── */
-  const byIdG = {};
-  tareas.forEach(t => { byIdG[t.id] = t; });
-
-  // Solo hitos críticos en el Gantt
+  /* ── PUNTOS — solo críticos ── */
   const puntosG = tareas.filter(t => t.critico && t.inicio && t.fin);
-
   puntosG.forEach(t => {
     const td = parseDate(t.inicio), tf = parseDate(t.fin);
     if (!td || !tf) return;
@@ -867,19 +794,15 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     if (xm < PAD_L || xm > PAD_L + chartW) return;
     const atrasada = !t.completada && tf < today;
     const col = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
-    const tip = `${t.critico ? '🔴 HITO CRÍTICO · ' : ''}${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
-
-    if (t.critico) {
-      // Anillo exterior rojo para hitos críticos
-      html += `<circle cx="${xm}" cy="${Y_TASKS}" r="9" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.5"/>`;
-    }
-    html += `<circle class="hito-dot" cx="${xm}" cy="${Y_TASKS}" r="${t.critico ? 6 : 5}" fill="${col}" stroke="#fff" stroke-width="2"
+    const tip = `🔴 ${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
+    html += `<circle cx="${xm}" cy="${Y_TASKS}" r="9" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.4"/>`;
+    html += `<circle class="hito-dot" cx="${xm}" cy="${Y_TASKS}" r="6" fill="${col}" stroke="#fff" stroke-width="2"
               onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"
-              onclick="abrirTareaPadre(${t.id})"/>`;
+              onclick="scrollToCritico(${t.id})"/>`;
     html += `<line x1="${xm}" y1="${Y_TASKS-6}" x2="${xm}" y2="${Y_BASE+16}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.3"/>`;
   });
 
-  /* ── 8. LÍNEA HOY ── */
+  /* ── LÍNEA HOY ── */
   const xH = px(today);
   if (xH >= PAD_L && xH <= PAD_L+chartW) {
     html += `<line x1="${xH}" y1="${H_Q}" x2="${xH}" y2="${H_SVG-4}" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>`;
@@ -890,7 +813,6 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   svg.innerHTML = html;
 }
 
-/* ─── Quarter bands helper ─── */
 function getQuarterBands(start, end) {
   const bands = [];
   const cur = new Date(start.getFullYear(), Math.floor(start.getMonth()/3)*3, 1);
@@ -904,12 +826,10 @@ function getQuarterBands(start, end) {
   return bands;
 }
 
-/* ─── Month labels ─── */
 function getMonthLabels(start, end) {
   const days = (end - start) / 86400000;
   const labels = [];
   if (days <= 45) {
-    // Semanas
     const cur = new Date(start);
     cur.setDate(cur.getDate() + (1 - cur.getDay() + 7) % 7);
     while (cur <= end) {
@@ -933,54 +853,27 @@ function showTip(e, text) {
 }
 function hideTip() { document.getElementById('ganttTooltip').style.display='none'; }
 
-// Al hacer clic en un punto del Gantt, expande ese padre en el panel de tareas
-function abrirTareaPadre(padreId) {
-  // Scroll al panel de tareas
-  document.getElementById('taskTree').scrollIntoView({ behavior:'smooth', block:'start' });
-  // Esperar al scroll y luego abrir la fila
-  setTimeout(() => {
-    const row = document.querySelector(`[data-padre-id="${padreId}"]`);
-    if (!row) return;
-    const children = row.nextElementSibling;
-    if (!children) return;
-    if (!children.classList.contains('open')) {
-      children.classList.add('open');
-      row.querySelector('.chevron').style.transform = 'rotate(90deg)';
-      // Flash visual para identificar cuál se abrió
-      row.style.transition = 'background .15s';
-      row.style.background = '#e0e7ff';
-      setTimeout(() => { row.style.background = ''; }, 800);
-    }
-  }, 400);
+function scrollToCritico(id) {
+  const el = document.getElementById('critico-' + id);
+  if (el) {
+    el.scrollIntoView({ behavior:'smooth', block:'center' });
+    el.style.transition = 'box-shadow .2s';
+    el.style.boxShadow = '0 0 0 3px #dc2626';
+    setTimeout(() => { el.style.boxShadow = ''; }, 1200);
+  } else {
+    document.getElementById('taskTree').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 }
 
-/* ════════════════════════════════════════════════════
-   PANEL DE TAREAS — árbol padre/hija desplegable
-════════════════════════════════════════════════════ */
-function setFiltroTareas(f) {
-  filtroTareas = f;
-  ['todas','pendientes','atrasadas','proximas','criticas'].forEach(id => {
-    const btn = document.getElementById('ftb' + id.charAt(0).toUpperCase() + id.slice(1));
-    if (!btn) return;
-    const isActive = id === f;
-    btn.classList.toggle('active', isActive);
-    // El botón críticas tiene estilo especial cuando activo
-    if (id === 'criticas') {
-      btn.style.borderColor = isActive ? '#dc2626' : '#fca5a5';
-      btn.style.background  = isActive ? '#dc2626' : '';
-      btn.style.color       = isActive ? '#fff'    : '#dc2626';
-    }
-  });
-  if (smData) renderTaskTree(smData.tareas);
-}
+/* ════ PANEL DE HITOS CRÍTICOS — solo críticos, sin filtros ════ */
+function renderTaskTree(tareas) {
+  const container = document.getElementById('taskTree');
+  const today     = new Date(); today.setHours(0,0,0,0);
+  container.innerHTML = '';
 
-/* ── Vista dedicada a Hitos Críticos ── */
-function renderVistaCriticas(tareas, today, container) {
-  // Construir mapa para encontrar el padre de cada tarea
   const byId = {};
   tareas.forEach(t => { byId[t.id] = t; });
 
-  // Solo las marcadas como crítico
   const criticas = tareas.filter(t => t.critico);
 
   if (!criticas.length) {
@@ -993,10 +886,10 @@ function renderVistaCriticas(tareas, today, container) {
     return;
   }
 
-  // Encabezado resumen
   const nPend = criticas.filter(t => !t.completada).length;
   const nAtr  = criticas.filter(t => !t.completada && parseDate(t.fin) < today).length;
-  const hdr   = document.createElement('div');
+
+  const hdr = document.createElement('div');
   hdr.style.cssText = 'display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:0 4px 16px;border-bottom:2px solid #fee2e2;margin-bottom:16px';
   hdr.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px">
@@ -1008,7 +901,7 @@ function renderVistaCriticas(tareas, today, container) {
     </div>`;
   container.appendChild(hdr);
 
-  // Ordenar: atrasadas primero, luego por fecha de fin
+  // Ordenar: atrasadas → en curso → completadas; dentro de cada grupo por fecha fin
   criticas.sort((a, b) => {
     const af = parseDate(a.fin), bf = parseDate(b.fin);
     const aAtr = !a.completada && af && af < today;
@@ -1030,18 +923,16 @@ function renderVistaCriticas(tareas, today, container) {
       ? (diasR < 0 ? `⚠ Venció hace ${Math.abs(diasR)} días` : diasR === 0 ? '⏰ Vence HOY' : `📅 Vence en ${diasR} días`)
       : '';
 
-    // Nombre del padre si existe
     const padre = t.parentId ? byId[t.parentId] : null;
 
     const card = document.createElement('div');
-    card.style.cssText = `background:${bgCol};border:1.5px solid ${bdCol};border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:default`;
+    card.id = 'critico-' + t.id;
+    card.style.cssText = `background:${bgCol};border:1.5px solid ${bdCol};border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:default;transition:box-shadow .2s`;
     card.innerHTML = `
       <div style="display:flex;align-items:flex-start;gap:12px">
-        <!-- Ícono estado -->
         <div style="width:36px;height:36px;border-radius:10px;background:${col}22;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">
           ${t.completada ? '✅' : atrasada ? '🚨' : '🎯'}
         </div>
-        <!-- Info -->
         <div style="flex:1;min-width:0">
           ${padre ? `<p style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">${padre.nombre}</p>` : ''}
           <p style="font-size:14px;font-weight:800;color:#1e293b;margin-bottom:4px">${t.nombre}</p>
@@ -1051,7 +942,6 @@ function renderVistaCriticas(tareas, today, container) {
             </span>
             ${diasTxt ? `<span style="font-size:11px;font-weight:800;color:${col}">${diasTxt}</span>` : ''}
           </div>
-          <!-- Barra de avance -->
           <div style="display:flex;align-items:center;gap:8px">
             <div style="flex:1;background:#e2e8f0;border-radius:99px;height:8px;overflow:hidden">
               <div style="width:${t.pct}%;height:100%;background:${col};border-radius:99px;transition:width .8s"></div>
@@ -1064,216 +954,13 @@ function renderVistaCriticas(tareas, today, container) {
   });
 }
 
-function renderTaskTree(tareas) {
-  const container = document.getElementById('taskTree');
-  const today     = new Date(); today.setHours(0,0,0,0);
-  container.innerHTML = '';
-
-  // ── Vista especial para CRÍTICAS ──
-  if (filtroTareas === 'criticas') {
-    renderVistaCriticas(tareas, today, container);
-    return;
-  }
-
-  // Mapa id → tarea
-  const byId = {};
-  tareas.forEach(t => { byId[t.id] = t; });
-
-  // Mapa padre → hijas
-  const hijas = {};
-  tareas.forEach(t => {
-    if (t.parentId && byId[t.parentId]) {
-      if (!hijas[t.parentId]) hijas[t.parentId] = [];
-      hijas[t.parentId].push(t);
-    }
-  });
-
-  // Raíces = sin parentId válido
-  const raices = tareas.filter(t => !t.parentId || !byId[t.parentId]);
-
-  function pasaFiltro(t) {
-    const tf = parseDate(t.fin);
-    const ti = parseDate(t.inicio);
-    if (filtroTareas === 'todas')      return true;
-    if (filtroTareas === 'pendientes') return !t.completada;
-    if (filtroTareas === 'atrasadas')  return !t.completada && tf && tf < today;
-    if (filtroTareas === 'proximas')   return !t.completada && ti && diasHasta(ti) <= 30 && diasHasta(ti) >= -7;
-    if (filtroTareas === 'criticas')   return !!t.critico;
-    return true;
-  }
-
-  // ── Render de una hija ──
-  function renderHija(t) {
-    const tf       = parseDate(t.fin);
-    const ti       = parseDate(t.inicio);
-    const atrasada = !t.completada && tf && tf < today;
-    const col      = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
-    const badgeClass = t.completada ? 'badge-done' : atrasada ? 'badge-err' : 'badge-warn';
-    const badgeText  = t.completada ? '✓ Completa' : atrasada ? '⚠ Atrasada' : '● En curso';
-    const diasR      = tf ? diasHasta(tf) : null;
-    const diasTxt    = (!t.completada && diasR !== null)
-      ? (diasR < 0 ? `hace ${Math.abs(diasR)}d` : diasR === 0 ? 'vence hoy' : `en ${diasR}d`)
-      : '';
-
-    const d = document.createElement('div');
-    d.className = 'flex items-start gap-3 px-4 py-2.5 ml-4 rounded-xl hover:bg-gray-50 transition-colors mb-1';
-    d.style.cssText = t.critico
-      ? 'border-left:3px solid #dc2626;background:#fff9f9'
-      : 'border-left:2px solid #e2e8f0';
-    d.innerHTML = `
-      <div style="margin-top:4px;width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${col}"></div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px">
-          <p style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">${t.nombre}</p>
-          ${t.critico ? `<span style="font-size:9px;font-weight:800;background:#fee2e2;color:#dc2626;border-radius:99px;padding:1px 6px;flex-shrink:0">🔴 HITO</span>` : ''}
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:10px;color:#64748b;font-weight:600">📅 ${fmtFecha(ti)} → ${fmtFecha(tf)}</span>
-          ${diasTxt ? `<span style="font-size:10px;font-weight:700;color:${atrasada?'#ef4444':'#64748b'}">${diasTxt}</span>` : ''}
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
-        <span class="badge ${badgeClass}">${badgeText}</span>
-        <div style="display:flex;align-items:center;gap:4px">
-          <div style="width:52px;background:#e2e8f0;border-radius:99px;height:5px;overflow:hidden">
-            <div style="width:${t.pct}%;height:100%;background:${col};border-radius:99px"></div>
-          </div>
-          <span style="font-size:11px;font-weight:800;color:${col}">${t.pct}%</span>
-        </div>
-      </div>`;
-    return d;
-  }
-
-  // ── Render de un padre ──
-  function renderPadre(t) {
-    const hh          = hijas[t.id] || [];
-    const tf          = parseDate(t.fin);
-    const ti          = parseDate(t.inicio);
-    const atrasada    = !t.completada && tf && tf < today;
-    const hijasPasan  = hh.filter(pasaFiltro);
-    if (!pasaFiltro(t) && hijasPasan.length === 0) return null;
-
-    // Estadísticas de hijas
-    const hhConFechas = hh.filter(h => h.inicio && h.fin);
-    const nTotal      = hhConFechas.length;
-    const nDone       = hhConFechas.filter(h => h.completada).length;
-    const nAtr        = hhConFechas.filter(h => !h.completada && parseDate(h.fin) < today).length;
-    const nCurso      = nTotal - nDone - nAtr;
-
-    // Hijas críticas
-    const nCrit = hhConFechas.filter(h => h.critico).length;
-
-    // Color principal del padre
-    const colP = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#6366f1';
-    const bgP  = t.completada ? '#f0fdf4' : atrasada ? '#fff1f2' : '#f5f3ff';
-    const bdP  = t.completada ? '#6ee7b7' : atrasada ? '#fca5a5' : '#c4b5fd';
-
-    const wrap = document.createElement('div');
-    wrap.className = 'mb-2';
-
-    // ── Fila del padre ──
-    const row = document.createElement('div');
-    row.className   = 'task-row padre flex flex-col gap-2 px-4 py-3 rounded-xl cursor-pointer select-none';
-    row.style.cssText = `background:${bgP};border:1.5px solid ${bdP};`;
-    row.setAttribute('data-padre-id', t.id);
-
-    // Duración en días
-    const durTxt = (ti && tf)
-      ? Math.round((tf - ti) / 86400000) + ' días'
-      : '';
-
-    row.innerHTML = `
-      <!-- Fila superior: chevron + nombre + badges -->
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="chevron" style="font-size:12px;transition:transform .25s;display:inline-block;color:${colP};flex-shrink:0">${hh.length>0?'▶':'—'}</span>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <p style="font-size:13px;font-weight:800;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px">${t.nombre}</p>
-            ${t.critico ? `<span style="font-size:9px;font-weight:800;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:99px;padding:1px 6px">🔴 CRÍTICA</span>` : ''}
-            ${nCrit > 0 && !t.critico ? `<span style="font-size:9px;font-weight:700;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:99px;padding:1px 6px">⚠ ${nCrit} crítica${nCrit>1?'s':''}</span>` : ''}
-            ${t.completada  ? `<span class="badge badge-done">✓ Completa</span>` : ''}
-            ${atrasada      ? `<span class="badge badge-err">⚠ Atrasada</span>` : ''}
-            ${!t.completada && !atrasada ? `<span class="badge badge-warn">● En curso</span>` : ''}
-          </div>
-          <p style="font-size:10px;color:#64748b;margin-top:1px">${fmtCorta(ti)} → ${fmtCorta(tf)}${durTxt?' · '+durTxt:''}</p>
-        </div>
-        <!-- % grande -->
-        <div style="text-align:right;flex-shrink:0">
-          <p style="font-size:20px;font-weight:900;color:${colP};line-height:1">${t.pct}%</p>
-          <p style="font-size:9px;color:#94a3b8;font-weight:600">avance</p>
-        </div>
-      </div>
-
-      <!-- Barra de progreso del padre -->
-      <div style="background:#e2e8f0;border-radius:99px;height:7px;overflow:hidden;width:100%">
-        <div style="width:${t.pct}%;height:100%;background:${colP};border-radius:99px;transition:width .8s"></div>
-      </div>
-
-      <!-- Fila inferior: conteo de hijas -->
-      ${nTotal > 0 ? `
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span style="font-size:10px;color:#64748b;font-weight:600">${nTotal} subtareas</span>
-        ${nDone  > 0 ? `<span style="font-size:10px;color:#10b981;font-weight:700;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block"></span>${nDone} completadas</span>` : ''}
-        ${nCurso > 0 ? `<span style="font-size:10px;color:#f59e0b;font-weight:700;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block"></span>${nCurso} en curso</span>` : ''}
-        ${nAtr   > 0 ? `<span style="font-size:10px;color:#ef4444;font-weight:700;display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block"></span>${nAtr} atrasadas</span>` : ''}
-      </div>` : ''}`;
-
-    // ── Panel de hijas (colapsable) ──
-    const children = document.createElement('div');
-    children.className = 'task-children pl-2 pt-1';
-
-    if (hh.length > 0) {
-      const listToShow = filtroTareas !== 'todas' ? hijasPasan : hh;
-      if (listToShow.length === 0) {
-        const empty = document.createElement('p');
-        empty.className = 'text-xs text-gray-400 px-4 py-2';
-        empty.textContent = 'Sin tareas para este filtro';
-        children.appendChild(empty);
-      } else {
-        listToShow.forEach(h => children.appendChild(renderHija(h)));
-      }
-
-      row.addEventListener('click', () => {
-        const open = children.classList.toggle('open');
-        row.querySelector('.chevron').style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
-      });
-    }
-
-    wrap.appendChild(row);
-    wrap.appendChild(children);
-    return wrap;
-  }
-
-  // Mostrar padres primero
-  let shown = 0;
-  raices.forEach(t => {
-    if (t.esPadre || hijas[t.id]?.length > 0) {
-      const el = renderPadre(t);
-      if (el) { container.appendChild(el); shown++; }
-    }
-  });
-
-  // Tareas huérfanas (sin padre, no esPadre)
-  const huerfanas = tareas.filter(t =>
-    !t.esPadre && (!t.parentId || !byId[t.parentId]) && pasaFiltro(t)
-    && !raices.find(r => r.id === t.id && (r.esPadre || hijas[r.id]?.length > 0))
-  );
-  huerfanas.forEach(t => { container.appendChild(renderHija(t)); shown++; });
-
-  if (!shown) {
-    container.innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No hay tareas para el filtro seleccionado.</p>';
-  }
-}
-
-/* ════════════════════════════════════════════════════
-   DEMO DATA
-════════════════════════════════════════════════════ */
+/* ════ DEMO DATA ════ */
 function cargarDemo() {
   const today = new Date(); today.setHours(0,0,0,0);
   const ds = d => { const x = new Date(today); x.setDate(x.getDate()+d); return x.toISOString().slice(0,10); };
 
   const tareasPadre1 = { id: 100, parentId: null, nivel:1, nombre:'Estructura', inicio:ds(-180), fin:ds(-50), pct:100, baseStart:ds(-180), baseFinish:ds(-60), completada:true, esPadre:true, duracionDias:130 };
-  const tareasPadre2 = { id: 200, parentId: null, nivel:1, nombre:'Mampostería', inicio:ds(-49), fin:ds(30), pct:60,  baseStart:ds(-49),   baseFinish:ds(10),  completada:false, esPadre:true, duracionDias:79 };
+  const tareasPadre2 = { id: 200, parentId: null, nivel:1, nombre:'Mampostería', inicio:ds(-49), fin:ds(30), pct:60,  baseStart:ds(-49), baseFinish:ds(10), completada:false, esPadre:true, duracionDias:79 };
   const tareasPadre3 = { id: 300, parentId: null, nivel:1, nombre:'Instalaciones', inicio:ds(31), fin:ds(100), pct:0, baseStart:ds(11), baseFinish:ds(80), completada:false, esPadre:true, duracionDias:69 };
   const tareasPadre4 = { id: 400, parentId: null, nivel:1, nombre:'Terminaciones', inicio:ds(101), fin:ds(150), pct:0, baseStart:ds(81), baseFinish:ds(130), completada:false, esPadre:true, duracionDias:49 };
 
@@ -1284,22 +971,22 @@ function cargarDemo() {
       resumen: { nombre:'Edificio Residencial Norte', avance:62, fechaInicio:ds(-180), fechaFin:ds(150), baseStart:ds(-180), baseFinish:ds(130), totalTareas:18, completadas:8 },
       tareas: [
         tareasPadre1,
-        { id:101, parentId:100, nivel:2, nombre:'Cimientos',         inicio:ds(-180), fin:ds(-150), pct:100, baseStart:ds(-180), baseFinish:ds(-150), completada:true,  esPadre:false, duracionDias:30 },
-        { id:102, parentId:100, nivel:2, nombre:'Estructura nivel 1', inicio:ds(-149), fin:ds(-100), pct:100, baseStart:ds(-149), baseFinish:ds(-110), completada:true,  esPadre:false, duracionDias:49 },
-        { id:103, parentId:100, nivel:2, nombre:'Estructura nivel 2', inicio:ds(-99),  fin:ds(-60),  pct:100, baseStart:ds(-99),  baseFinish:ds(-70),  completada:true,  esPadre:false, duracionDias:39 },
-        { id:104, parentId:100, nivel:2, nombre:'Losa cubierta',      inicio:ds(-59),  fin:ds(-50),  pct:100, baseStart:ds(-59),  baseFinish:ds(-55),  completada:true,  esPadre:false, duracionDias:9  },
+        { id:101, parentId:100, nivel:2, nombre:'Cimientos',          inicio:ds(-180), fin:ds(-150), pct:100, completada:true,  esPadre:false, critico:false },
+        { id:102, parentId:100, nivel:2, nombre:'Estructura nivel 1', inicio:ds(-149), fin:ds(-100), pct:100, completada:true,  esPadre:false, critico:true  },
+        { id:103, parentId:100, nivel:2, nombre:'Estructura nivel 2', inicio:ds(-99),  fin:ds(-60),  pct:100, completada:true,  esPadre:false, critico:false },
+        { id:104, parentId:100, nivel:2, nombre:'Losa cubierta',      inicio:ds(-59),  fin:ds(-50),  pct:100, completada:true,  esPadre:false, critico:true  },
         tareasPadre2,
-        { id:201, parentId:200, nivel:2, nombre:'Mampostería PB',     inicio:ds(-49), fin:ds(-20), pct:100, baseStart:ds(-49), baseFinish:ds(-25), completada:true,  esPadre:false, duracionDias:29 },
-        { id:202, parentId:200, nivel:2, nombre:'Mampostería P1',     inicio:ds(-19), fin:ds(10),  pct:70,  baseStart:ds(-19), baseFinish:ds(5),   completada:false, esPadre:false, duracionDias:29 },
-        { id:203, parentId:200, nivel:2, nombre:'Mampostería P2',     inicio:ds(11),  fin:ds(30),  pct:0,   baseStart:ds(6),   baseFinish:ds(10),  completada:false, esPadre:false, duracionDias:19 },
+        { id:201, parentId:200, nivel:2, nombre:'Mampostería PB',     inicio:ds(-49), fin:ds(-20), pct:100, completada:true,  esPadre:false, critico:false },
+        { id:202, parentId:200, nivel:2, nombre:'Mampostería P1',     inicio:ds(-19), fin:ds(10),  pct:70,  completada:false, esPadre:false, critico:true  },
+        { id:203, parentId:200, nivel:2, nombre:'Mampostería P2',     inicio:ds(11),  fin:ds(30),  pct:0,   completada:false, esPadre:false, critico:false },
         tareasPadre3,
-        { id:301, parentId:300, nivel:2, nombre:'Inst. eléctricas',   inicio:ds(31),  fin:ds(60),  pct:0, baseStart:ds(11), baseFinish:ds(40), completada:false, esPadre:false, duracionDias:29 },
-        { id:302, parentId:300, nivel:2, nombre:'Inst. sanitarias',   inicio:ds(31),  fin:ds(70),  pct:0, baseStart:ds(11), baseFinish:ds(50), completada:false, esPadre:false, duracionDias:39 },
-        { id:303, parentId:300, nivel:2, nombre:'Inst. gas',          inicio:ds(61),  fin:ds(100), pct:0, baseStart:ds(41), baseFinish:ds(80), completada:false, esPadre:false, duracionDias:39 },
+        { id:301, parentId:300, nivel:2, nombre:'Inst. eléctricas',   inicio:ds(31),  fin:ds(60),  pct:0, completada:false, esPadre:false, critico:true  },
+        { id:302, parentId:300, nivel:2, nombre:'Inst. sanitarias',   inicio:ds(31),  fin:ds(70),  pct:0, completada:false, esPadre:false, critico:false },
+        { id:303, parentId:300, nivel:2, nombre:'Inst. gas',          inicio:ds(61),  fin:ds(100), pct:0, completada:false, esPadre:false, critico:true  },
         tareasPadre4,
-        { id:401, parentId:400, nivel:2, nombre:'Revoques',           inicio:ds(101), fin:ds(120), pct:0, baseStart:ds(81),  baseFinish:ds(100), completada:false, esPadre:false, duracionDias:19 },
-        { id:402, parentId:400, nivel:2, nombre:'Pintura',            inicio:ds(121), fin:ds(135), pct:0, baseStart:ds(101), baseFinish:ds(115), completada:false, esPadre:false, duracionDias:14 },
-        { id:403, parentId:400, nivel:2, nombre:'Pisos y revestimientos',inicio:ds(136),fin:ds(150),pct:0, baseStart:ds(116), baseFinish:ds(130), completada:false, esPadre:false, duracionDias:14 },
+        { id:401, parentId:400, nivel:2, nombre:'Revoques',           inicio:ds(101), fin:ds(120), pct:0, completada:false, esPadre:false, critico:false },
+        { id:402, parentId:400, nivel:2, nombre:'Pintura',            inicio:ds(121), fin:ds(135), pct:0, completada:false, esPadre:false, critico:true  },
+        { id:403, parentId:400, nivel:2, nombre:'Pisos y revestimientos',inicio:ds(136),fin:ds(150),pct:0, completada:false, esPadre:false, critico:false },
       ]
     }
   }];
@@ -1320,7 +1007,6 @@ function cargarDemo() {
   showToast('🛠️ Modo demo — conectá Smartsheet para datos reales', 6000);
 }
 
-/* ─── UI helpers ─── */
 function setLoading(on) {
   document.getElementById('loadingBar').classList.toggle('hidden', !on);
   document.getElementById('btnRefresh').disabled = on;
@@ -1332,7 +1018,6 @@ function showToast(msg, dur=3000) {
   setTimeout(() => el.classList.remove('show'), dur);
 }
 
-/* ─── Refrescar ─── */
 async function refrescar(forceRefresh = false) {
   setLoading(true);
   document.getElementById('errorBox').classList.add('hidden');
@@ -1350,7 +1035,6 @@ async function refrescar(forceRefresh = false) {
   } finally { setLoading(false); }
 }
 
-/* ─── Init ─── */
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hdrFecha').textContent =
     new Date().toLocaleDateString('es-AR', {day:'2-digit',month:'long',year:'numeric'});
