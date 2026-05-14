@@ -611,7 +611,7 @@ function renderTiempos(sm) {
   drawGantt(tareas, t0, t1, b0, b1, today, av);
 }
 
-/* ════ GANTT SVG — trimestres sin stacking ════ */
+/* ════ GANTT SVG ════ */
 function setVista(v) {
   vistaGantt = v;
   ['total','trimestre','mes'].forEach(id => {
@@ -660,16 +660,59 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   }
 
   // Layout vertical
-  const H_Q       = 26;  // Banda quarter
-  const H_MONTHS  = 20;  // Fila meses
-  const H_SEP     = 4;
+  const H_Q      = 22;   // Banda quarter
+  const H_MONTHS = 18;   // Fila meses
+  const H_SEP    = 4;
   const Y_Q_BAND  = 0;
   const Y_MONTHS  = H_Q;
   const Y_CONTENT = H_Q + H_MONTHS + H_SEP;
   const Y_REAL    = Y_CONTENT + 38;
-  const Y_BASE    = Y_CONTENT + 92;
-  const Y_TASKS   = Y_CONTENT + 138;
-  const H_SVG     = Y_TASKS + 34;
+  const Y_BASE    = Y_CONTENT + 88;
+
+  // Calcular espacio para hitos (apilados verticalmente)
+  // Primero necesitamos saber cuántos niveles de stack habrá
+  const DOT_R    = 7;   // radio del punto
+  const DOT_GAP  = 3;   // separación mínima entre centros en X para no apilar
+  const DOT_STEP = 16;  // separación vertical entre niveles apilados
+
+  const puntosG = tareas.filter(t => t.critico && t.inicio && t.fin);
+
+  // Pre-calcular posiciones X de cada hito
+  const hitosConX = puntosG.map(t => {
+    const td = parseDate(t.inicio), tf = parseDate(t.fin);
+    if (!td || !tf) return null;
+    const xm = px(new Date((td.getTime() + tf.getTime()) / 2));
+    return { t, xm, td, tf };
+  }).filter(Boolean);
+
+  // Algoritmo de stacking: agrupar hitos muy cercanos y apilarlos verticalmente
+  // Ordenar por X
+  hitosConX.sort((a, b) => a.xm - b.xm);
+
+  // Asignar nivel (lane) a cada hito
+  // lane 0 = fila base (Y_TASKS), lane 1 = arriba, lane 2 = más arriba...
+  const lanes = []; // lanes[i] = último X usado en ese lane
+  hitosConX.forEach(h => {
+    let laneIdx = 0;
+    // Buscar el lane más bajo donde el hito no solape con el anterior
+    for (let i = 0; i < lanes.length; i++) {
+      if (h.xm - lanes[i] >= (DOT_R * 2 + DOT_GAP)) {
+        laneIdx = i;
+        break;
+      }
+      laneIdx = i + 1; // necesita un lane más alto
+    }
+    if (!lanes[laneIdx]) lanes[laneIdx] = -Infinity;
+    h.lane = laneIdx;
+    lanes[laneIdx] = h.xm;
+  });
+
+  const maxLane = hitosConX.length ? Math.max(...hitosConX.map(h => h.lane)) : 0;
+  // La fila de tareas crece hacia arriba desde Y_TASKS_BASE
+  const Y_TASKS_BASE = Y_BASE + 36;
+  // Altura necesaria para la zona de hitos
+  const HITOS_ZONE_H = DOT_R * 2 + maxLane * DOT_STEP + 10;
+  const H_SVG = Y_TASKS_BASE + HITOS_ZONE_H + 16;
 
   svg.setAttribute('height', H_SVG);
 
@@ -678,9 +721,7 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   // Fondo header
   html += `<rect x="0" y="0" width="${W}" height="${Y_CONTENT}" fill="#f8fafc"/>`;
 
-  /* ── BANDAS DE QUARTERS — sin stacking ──
-     Colores alternos, label una sola vez, centrado en el espacio visible.
-     Si el espacio visible es < 32px, se omite el label. */
+  /* ── BANDAS DE QUARTERS ── */
   const QUARTER_COLORS = [
     { bg:'#eef2ff', border:'#c7d2fe', text:'#4338ca' },
     { bg:'#f0fdf4', border:'#bbf7d0', text:'#166534' },
@@ -696,20 +737,16 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
     const qc  = QUARTER_COLORS[qi % 4];
     const bw  = x2 - x1;
 
-    // Fondo del quarter
     html += `<rect x="${x1}" y="${Y_Q_BAND}" width="${bw}" height="${H_Q}" fill="${qc.bg}"/>`;
 
-    // Línea vertical izquierda del quarter (solo si no es el primero del área visible)
     if (x1 > PAD_L) {
       html += `<line x1="${x1}" y1="${Y_Q_BAND}" x2="${x1}" y2="${H_SVG}" stroke="${qc.border}" stroke-width="1.5" stroke-dasharray="5,4"/>`;
     }
 
-    // Label del quarter — una sola línea, centrada, solo si hay espacio
     if (bw >= 36) {
       const cx = x1 + bw / 2;
-      // Recortar el label si el espacio es ajustado
-      const shortLabel = bw < 70 ? label.replace(/\s\d{4}/, '') : label; // quita el año si estrecho
-      html += `<text x="${cx}" y="${Y_Q_BAND + 17}" text-anchor="middle" dominant-baseline="middle"
+      const shortLabel = bw < 70 ? label.replace(/\s\d{4}/, '') : label;
+      html += `<text x="${cx}" y="${Y_Q_BAND + 14}" text-anchor="middle" dominant-baseline="middle"
         font-size="10" fill="${qc.text}" font-family="DM Mono,monospace" font-weight="700"
         letter-spacing="0.04em">${shortLabel}</text>`;
     }
@@ -718,15 +755,30 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   // Línea separadora Q / meses
   html += `<line x1="${PAD_L}" y1="${H_Q}" x2="${PAD_L+chartW}" y2="${H_Q}" stroke="#e2e8f0" stroke-width="1.5"/>`;
 
-  /* ── FILA DE MESES ── */
+  /* ── FILA DE MESES — con anti-solapamiento ──
+     Calculamos el ancho disponible entre ticks consecutivos.
+     Si es menor que MIN_MONTH_W, saltamos la etiqueta de ese mes. */
+  const MIN_MONTH_W = 28; // píxeles mínimos para mostrar label
+
   const meses = getMonthLabels(vStart, vEnd);
+
+  // Dibujar las líneas verticales de meses siempre
+  meses.forEach(({ date }, mi) => {
+    const x = px(date);
+    if (x < PAD_L || x > PAD_L + chartW) return;
+    html += `<line x1="${x}" y1="${Y_MONTHS}" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
+  });
+
+  // Dibujar labels solo cuando hay espacio suficiente
+  let lastLabelX = PAD_L - MIN_MONTH_W * 2; // iniciar muy lejos a la izquierda
   meses.forEach(({ date, label }, mi) => {
     const x = px(date);
-    if (x < PAD_L || x > PAD_L+chartW) return;
-    html += `<line x1="${x}" y1="${Y_MONTHS}" x2="${x}" y2="${H_SVG}" stroke="#e2e8f0" stroke-width="1"/>`;
-    const lx = x + 5;
-    if (lx + 30 < PAD_L + chartW)
-      html += `<text x="${lx}" y="${Y_MONTHS + 14}" font-size="10" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700">${label}</text>`;
+    if (x < PAD_L || x > PAD_L + chartW) return;
+    // Solo mostrar si la distancia al último label es suficiente
+    if (x - lastLabelX >= MIN_MONTH_W) {
+      html += `<text x="${x + 4}" y="${Y_MONTHS + 13}" font-size="10" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700">${label}</text>`;
+      lastLabelX = x;
+    }
   });
 
   // Separador header / contenido
@@ -742,9 +794,9 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
   });
 
   /* ── ETIQUETAS DE FILAS ── */
-  html += `<text x="${PAD_L}" y="${Y_REAL-12}" font-size="9" fill="#f97316" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">AVANCE REAL</text>`;
-  html += `<text x="${PAD_L}" y="${Y_BASE-10}" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">LÍNEA BASE</text>`;
-  html += `<text x="${PAD_L}" y="${Y_TASKS-5}" font-size="9" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">HITOS CRÍTICOS</text>`;
+  html += `<text x="${PAD_L}" y="${Y_REAL - 12}" font-size="9" fill="#f97316" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">AVANCE REAL</text>`;
+  html += `<text x="${PAD_L}" y="${Y_BASE - 10}" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">LÍNEA BASE</text>`;
+  html += `<text x="${PAD_L}" y="${Y_TASKS_BASE - 6}" font-size="9" fill="#64748b" font-family="DM Sans,sans-serif" font-weight="700" letter-spacing=".05em">HITOS CRÍTICOS</text>`;
 
   /* ── BARRA AVANCE REAL ── */
   const barH   = 22;
@@ -785,21 +837,39 @@ function drawGantt(tareas, t0, t1, b0, b1, today, avance) {
       html += `<text x="${lbX2}" y="${Y_BASE+18}" text-anchor="middle" font-size="9" fill="#6366f1" font-family="DM Sans,sans-serif" font-weight="700">${fmtCorta(b1)}</text>`;
   }
 
-  /* ── PUNTOS — solo críticos ── */
-  const puntosG = tareas.filter(t => t.critico && t.inicio && t.fin);
-  puntosG.forEach(t => {
-    const td = parseDate(t.inicio), tf = parseDate(t.fin);
-    if (!td || !tf) return;
-    const xm = px(new Date((td.getTime() + tf.getTime()) / 2));
+  /* ── HITOS CRÍTICOS — apilados verticalmente ──
+     lane 0 = fila base (más abajo), lane N = más arriba
+     Y del punto = Y_TASKS_BASE + DOT_R - lane * DOT_STEP  */
+  hitosConX.forEach(h => {
+    const { t, xm, td, tf, lane } = h;
     if (xm < PAD_L || xm > PAD_L + chartW) return;
+
     const atrasada = !t.completada && tf < today;
-    const col = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
-    const tip = `🔴 ${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
-    html += `<circle cx="${xm}" cy="${Y_TASKS}" r="9" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.4"/>`;
-    html += `<circle class="hito-dot" cx="${xm}" cy="${Y_TASKS}" r="6" fill="${col}" stroke="#fff" stroke-width="2"
-              onmouseenter="showTip(event,\`${tip.replace(/`/g,"'")}\`)" onmouseleave="hideTip()"
+    const col      = t.completada ? '#10b981' : atrasada ? '#ef4444' : '#f59e0b';
+
+    // Y de este hito: lane 0 = parte baja, lane 1 = un escalón arriba, etc.
+    const dotY = Y_TASKS_BASE + DOT_R + (maxLane - lane) * DOT_STEP;
+
+    const tip  = `🔴 ${t.nombre} | ${fmtCorta(td)} → ${fmtCorta(tf)} | ${t.pct}%`;
+    const safeTip = tip.replace(/`/g, "'").replace(/"/g, '&quot;');
+
+    // Línea vertical tenue hacia la línea base
+    html += `<line x1="${xm}" y1="${dotY - DOT_R}" x2="${xm}" y2="${Y_BASE + 16}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.25"/>`;
+
+    // Halo exterior (solo en lane 0 o cuando está atrasado, para no saturar)
+    if (lane === 0 || atrasada) {
+      html += `<circle cx="${xm}" cy="${dotY}" r="${DOT_R + 4}" fill="none" stroke="${col}" stroke-width="1.5" opacity="0.3"/>`;
+    }
+
+    // Punto principal
+    html += `<circle class="hito-dot" cx="${xm}" cy="${dotY}" r="${DOT_R}" fill="${col}" stroke="#fff" stroke-width="2"
+              onmouseenter="showTip(event,\`${safeTip}\`)" onmouseleave="hideTip()"
               onclick="scrollToCritico(${t.id})"/>`;
-    html += `<line x1="${xm}" y1="${Y_TASKS-6}" x2="${xm}" y2="${Y_BASE+16}" stroke="${col}" stroke-width="1" stroke-dasharray="3,2" opacity="0.3"/>`;
+
+    // Número de lane si hay stack (ayuda visual)
+    if (lane > 0) {
+      html += `<text x="${xm}" y="${dotY + 4}" text-anchor="middle" font-size="8" fill="#fff" font-family="DM Sans,sans-serif" font-weight="800">${lane + 1}</text>`;
+    }
   });
 
   /* ── LÍNEA HOY ── */
@@ -865,7 +935,7 @@ function scrollToCritico(id) {
   }
 }
 
-/* ════ PANEL DE HITOS CRÍTICOS — solo críticos, sin filtros ════ */
+/* ════ PANEL DE HITOS CRÍTICOS ════ */
 function renderTaskTree(tareas) {
   const container = document.getElementById('taskTree');
   const today     = new Date(); today.setHours(0,0,0,0);
@@ -901,7 +971,6 @@ function renderTaskTree(tareas) {
     </div>`;
   container.appendChild(hdr);
 
-  // Ordenar: atrasadas → en curso → completadas; dentro de cada grupo por fecha fin
   criticas.sort((a, b) => {
     const af = parseDate(a.fin), bf = parseDate(b.fin);
     const aAtr = !a.completada && af && af < today;
